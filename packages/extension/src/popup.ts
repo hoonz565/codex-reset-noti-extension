@@ -37,7 +37,7 @@ async function subscribe() {
     preferences: {
       probability70: alert70.checked,
       resetAnnounced: alertAnnounced.checked,
-    }
+    },
   };
 
   try {

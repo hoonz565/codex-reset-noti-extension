@@ -113,7 +113,7 @@ const handleSubscriptions = async (request: Request, env: Env) => {
     // Cloudflare Workers fetch API buffers request.arrayBuffer() safely up to Worker limits
     // but we enforce our own lower limit before parsing.
     const buffer = await request.arrayBuffer();
-    
+
     // 4. Measure the actual byte length.
     // 5. Reject if actual length exceeds the configured limit.
     if (buffer.byteLength > MAX_PAYLOAD_SIZE) {
@@ -127,7 +127,7 @@ const handleSubscriptions = async (request: Request, env: Env) => {
     }
 
     const text = new TextDecoder('utf-8').decode(buffer);
-    
+
     // 6. Parse JSON only after the size checks.
     const body = JSON.parse(text);
     // Validate request body

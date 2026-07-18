@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import worker from '../src/index';
 
 describe('Worker API Spike', () => {
-  const env = { ALLOWED_ORIGINS: 'chrome-extension://untrusted-client-id,chrome-extension://local-test-id' };
+  const env = {
+    ALLOWED_ORIGINS: 'chrome-extension://untrusted-client-id,chrome-extension://local-test-id',
+  };
   const allowedOrigin = 'chrome-extension://untrusted-client-id';
   const ctx = {
     waitUntil: () => {},
@@ -44,7 +46,11 @@ describe('Worker API Spike', () => {
   });
 
   it('OPTIONS returns expected CORS headers for allowed extension origin', async () => {
-    const res = await worker.fetch(request('OPTIONS', '/api/subscriptions', allowedOrigin), env, ctx);
+    const res = await worker.fetch(
+      request('OPTIONS', '/api/subscriptions', allowedOrigin),
+      env,
+      ctx
+    );
     expect(res.status).toBe(200);
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(allowedOrigin);
     expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST');
@@ -148,7 +154,7 @@ describe('Worker API Spike', () => {
     const req = request('POST', '/api/subscriptions', allowedOrigin, '{}');
     // Override headers to mock a large content length
     req.headers.set('Content-Length', '9999');
-    
+
     const res = await worker.fetch(req, env, ctx);
     expect(res.status).toBe(413);
   });
