@@ -1,0 +1,16 @@
+{
+  "name": "@codex-reset/worker",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@codex-reset/shared": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260718.1"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@codex-reset/extension",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@codex-reset/shared": "*"
+  }
+}
