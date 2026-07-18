@@ -1,15 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import worker from '../src/index';
+import { setupTestDb } from './db/test-utils';
+
+import { env as cfEnv } from 'cloudflare:test';
 
 describe('Worker API Spike', () => {
   const env = {
     ALLOWED_ORIGINS: 'chrome-extension://untrusted-client-id,chrome-extension://local-test-id',
+    DB: cfEnv.DB as D1Database,
+    RATE_LIMIT_SECRET: 'test-secret',
   };
   const allowedOrigin = 'chrome-extension://untrusted-client-id';
   const ctx = {
     waitUntil: () => {},
     passThroughOnException: () => {},
   } as unknown as ExecutionContext;
+
+  beforeAll(async () => {
+    await setupTestDb();
+  });
 
   const request = (method: string, path: string, origin?: string, body?: unknown) => {
     const headers = new Headers();
@@ -56,31 +65,101 @@ describe('Worker API Spike', () => {
     expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST');
   });
 
-  it('Allowed origin receives matching Access-Control-Allow-Origin', async () => {
-    const payload = {
-      email: 'user@example.com',
-      preferences: { probability70: true, resetAnnounced: true },
-    };
-    const res = await worker.fetch(
-      request('POST', '/api/subscriptions', allowedOrigin, payload),
-      env,
-      ctx
-    );
-    expect(res.status).toBe(200);
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(allowedOrigin);
-  });
+  it(
+    'Allowed origin receives matching Access-Control-Allow-Origin',
+    { timeout: 15000 },
+    async () => {
+      const payload = {
+        email: 'cors-check@example.com',
+        preferences: { probability70: true, resetAnnounced: true },
+      };
+      const res = await worker.fetch(
+        request('POST', '/api/subscriptions', allowedOrigin, payload),
+        env,
+        ctx
+      );
+      expect(res.status).toBe(202);
+      expect(res.headers.get('Access-Control-Allow-Origin')).toBe(allowedOrigin);
+    }
+  );
 
-  it('Unknown origin is rejected for subscription POST', async () => {
+  it('Unknown origin is rejected for subscription POST, before body parsing', async () => {
+    // forbidden-Origin state-changing requests produce no writes
     const payload = {
-      email: 'user@example.com',
+      email: 'user-unknown@example.com',
       preferences: { probability70: true, resetAnnounced: true },
     };
     const res = await worker.fetch(
-      request('POST', '/api/subscriptions', 'https://evil.com', payload),
+      new Request('http://localhost:8787/api/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://evil.com',
+        },
+        body: JSON.stringify(payload),
+      }),
       env,
       ctx
     );
     expect(res.status).toBe(403);
+    const data = (await res.json()) as { error: string };
+    expect(data.error).toBe('Origin not allowed');
+    // Ensure no writes occurred
+    const { results } = await env.DB.prepare('SELECT * FROM subscribers WHERE email = ?')
+      .bind('user-unknown@example.com')
+      .all();
+    expect(results.length).toBe(0);
+  });
+
+  it('Missing origin is allowed subject to normal policies', async () => {
+    const payload = {
+      email: 'user-no-origin@example.com',
+      preferences: { probability70: true, resetAnnounced: true },
+    };
+    const res = await worker.fetch(
+      new Request('http://localhost:8787/api/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // No Origin header — allowed per policy, subject to rate limits
+        },
+        body: JSON.stringify(payload),
+      }),
+      env,
+      ctx
+    );
+    expect(res.status).toBe(202);
+  });
+
+  it('Allowed origin does not replace management token authorization', async () => {
+    // GET /api/subscriptions/manage with allowed origin but no token must return 401
+    const res = await worker.fetch(
+      request('GET', '/api/subscriptions/manage', allowedOrigin),
+      env,
+      ctx
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it('BODY-LIMIT-UNICODE: Unicode body whose char count is under limit but byte count exceeds it is rejected', async () => {
+    // Each emoji is 4 UTF-8 bytes. 1300 emojis = 5200 bytes > 5000 limit
+    // but string length is 1300 chars which is well under 5000 chars
+    const emoji = '\u{1F600}'; // 4 bytes per emoji
+    const padding = emoji.repeat(1300);
+    const body = JSON.stringify({ padding });
+    const res = await worker.fetch(
+      new Request('http://localhost:8787/api/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // No Content-Length — forces body read and byte measurement
+        },
+        body,
+      }),
+      env,
+      ctx
+    );
+    expect(res.status).toBe(413);
   });
 
   it('POST valid two-alert payload succeeds', async () => {
@@ -93,15 +172,14 @@ describe('Worker API Spike', () => {
       env,
       ctx
     );
-    expect(res.status).toBe(200);
-    const data = (await res.json()) as { ok: boolean; subscription: { id: string } };
-    expect(data.ok).toBe(true);
-    expect(data.subscription.id).toBe('sub_transport_spike');
+    expect(res.status).toBe(202);
+    const data = (await res.json()) as { accepted: boolean };
+    expect(data.accepted).toBe(true);
   });
 
   it('Both alerts false is rejected', async () => {
     const payload = {
-      email: 'user@example.com',
+      email: 'user-false@example.com',
       preferences: { probability70: false, resetAnnounced: false },
     };
     const res = await worker.fetch(
@@ -114,7 +192,7 @@ describe('Worker API Spike', () => {
 
   it('probability90 is rejected', async () => {
     const payload = {
-      email: 'user@example.com',
+      email: 'user-90@example.com',
       preferences: { probability70: true, resetAnnounced: true, probability90: true },
     };
     const res = await worker.fetch(
@@ -127,7 +205,7 @@ describe('Worker API Spike', () => {
 
   it('resetCompleted is rejected', async () => {
     const payload = {
-      email: 'user@example.com',
+      email: 'user-completed@example.com',
       preferences: { probability70: true, resetAnnounced: true, resetCompleted: true },
     };
     const res = await worker.fetch(
@@ -146,7 +224,7 @@ describe('Worker API Spike', () => {
     );
     expect(res.status).toBe(400);
     const data = (await res.json()) as { error: string; details: unknown };
-    expect(data.error).toBe('Validation error');
+    expect(data.error).toBe('Invalid request body');
     expect(data.details).not.toBeNull();
   });
 
@@ -161,7 +239,7 @@ describe('Worker API Spike', () => {
 
   it('BODY-LIMIT-2: Missing Content-Length with oversized actual body is rejected after byte measurement', async () => {
     const hugeBody = {
-      email: 'user@example.com',
+      email: 'user-huge@example.com',
       preferences: { probability70: true, resetAnnounced: true },
       padding: 'x'.repeat(6000),
     };

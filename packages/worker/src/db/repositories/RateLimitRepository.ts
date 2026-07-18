@@ -4,7 +4,16 @@ export class RateLimitRepository {
   constructor(private db: D1Database) {}
 
   async incrementOrCreate(key: string, actionType: string, expiresAt: string, createdAt: string) {
-    const stmt = this.db
+    await this.getIncrementOrCreateStatement(key, actionType, expiresAt, createdAt).run();
+  }
+
+  getIncrementOrCreateStatement(
+    key: string,
+    actionType: string,
+    expiresAt: string,
+    createdAt: string
+  ) {
+    return this.db
       .prepare(
         `
       INSERT INTO rate_limit_records (key, action_type, count, expires_at, created_at, updated_at)
@@ -15,8 +24,6 @@ export class RateLimitRepository {
     `
       )
       .bind(key, actionType, expiresAt, createdAt, createdAt);
-
-    await stmt.run();
   }
 
   async getCurrent(key: string) {

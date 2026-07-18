@@ -61,3 +61,5 @@ PLANNED
 ## 12. Risks and unresolved questions
 
 - Missed detections if upstream is degraded during transition window.
+
+Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.

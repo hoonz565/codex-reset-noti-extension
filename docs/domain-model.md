@@ -351,3 +351,5 @@ interface ResetCycle {
   updatedAt: string;
 }
 ```
+
+Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.

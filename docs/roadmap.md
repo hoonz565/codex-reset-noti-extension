@@ -99,3 +99,5 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 **Suggested Branch:** `phase-9-production-release`
 
 - **Purpose:** Deploy production Worker, configure production D1, configure production extension ID and CORS, configure email provider, verify migrations, run staging tests, prepare Chrome Web Store release.
+
+Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.

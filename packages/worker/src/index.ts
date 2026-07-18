@@ -1,7 +1,9 @@
-import { publicStatusResponseSchema, createSubscriptionRequestSchema } from '@codex-reset/shared';
+import { publicStatusResponseSchema } from '@codex-reset/shared';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
+  DB: D1Database;
+  RATE_LIMIT_SECRET: string;
 }
 
 /**
@@ -78,94 +80,6 @@ const handleStatus = (request: Request, env: Env) => {
   return new Response(JSON.stringify(parsed), { headers });
 };
 
-const handleSubscriptions = async (request: Request, env: Env) => {
-  const origin = request.headers.get('Origin') || '';
-  const allowedList = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim());
-  const isAllowedOrigin = allowedList.includes(origin);
-
-  if (!isAllowedOrigin) {
-    return new Response(JSON.stringify({ error: 'Forbidden origin' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const MAX_PAYLOAD_SIZE = 5000;
-
-  // 1. Read and validate Content-Length when present.
-  const contentLengthHeader = request.headers.get('Content-Length');
-  if (contentLengthHeader) {
-    const declaredLength = parseInt(contentLengthHeader, 10);
-    // 2. Reject an oversized declared length before reading the body.
-    if (!isNaN(declaredLength) && declaredLength > MAX_PAYLOAD_SIZE) {
-      return new Response(JSON.stringify({ error: 'Payload too large' }), {
-        status: 413,
-        headers: {
-          'Content-Type': 'application/json',
-          ...Object.fromEntries(handleCors(request, env)),
-        },
-      });
-    }
-  }
-
-  try {
-    // 3. Read the raw body.
-    // Cloudflare Workers fetch API buffers request.arrayBuffer() safely up to Worker limits
-    // but we enforce our own lower limit before parsing.
-    const buffer = await request.arrayBuffer();
-
-    // 4. Measure the actual byte length.
-    // 5. Reject if actual length exceeds the configured limit.
-    if (buffer.byteLength > MAX_PAYLOAD_SIZE) {
-      return new Response(JSON.stringify({ error: 'Payload too large' }), {
-        status: 413,
-        headers: {
-          'Content-Type': 'application/json',
-          ...Object.fromEntries(handleCors(request, env)),
-        },
-      });
-    }
-
-    const text = new TextDecoder('utf-8').decode(buffer);
-
-    // 6. Parse JSON only after the size checks.
-    const body = JSON.parse(text);
-    // Validate request body
-    createSubscriptionRequestSchema.parse(body);
-
-    const headers = handleCors(request, env);
-    headers.set('Content-Type', 'application/json');
-
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        subscription: {
-          id: 'sub_transport_spike',
-          state: 'pending_confirmation',
-        },
-        managementToken: 'transport-spike-placeholder',
-        message: 'Transport validation succeeded. NON-PRODUCTION BEHAVIOR.',
-      }),
-      { headers }
-    );
-  } catch (err: unknown) {
-    const errorObj = err as Record<string, unknown>;
-    const headers = handleCors(request, env);
-    headers.set('Content-Type', 'application/json');
-
-    return new Response(
-      JSON.stringify({
-        error: 'Validation error',
-        details: errorObj?.issues || errorObj?.message || 'Unknown error',
-      }),
-      {
-        status: 400,
-        headers,
-      }
-    );
-  }
-};
-
 export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -178,8 +92,26 @@ export default {
       return handleStatus(request, env);
     }
 
-    if (request.method === 'POST' && url.pathname === '/api/subscriptions') {
-      return handleSubscriptions(request, env);
+    if (url.pathname.startsWith('/api/subscriptions')) {
+      const origin = request.headers.get('Origin') || '';
+      const allowedList = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim());
+      if (request.method !== 'OPTIONS' && origin && !allowedList.includes(origin)) {
+        return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { createSubscriptionRouter } = await import('./http/subscription-routes');
+      const router = createSubscriptionRouter(env.DB, env.RATE_LIMIT_SECRET || 'dev-secret');
+
+      const response = await router.handle(request);
+      if (response) {
+        const corsResponse = new Response(response.body, response);
+        const headers = handleCors(request, env);
+        headers.forEach((v, k) => corsResponse.headers.set(k, v));
+        return corsResponse;
+      }
     }
 
     return new Response('Not found', { status: 404 });

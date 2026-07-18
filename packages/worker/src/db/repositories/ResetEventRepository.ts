@@ -17,6 +17,12 @@ export type CreateResult = 'inserted' | 'already_exists' | 'error';
 export class ResetEventRepository {
   constructor(private db: D1Database) {}
 
+  async findById(id: string) {
+    const stmt = this.db.prepare(`SELECT * FROM reset_events WHERE id = ?`).bind(id);
+    const row = await stmt.first<ResetEventRow>();
+    return row ? mapResetEventRow(row) : null;
+  }
+
   async createIfAbsent(params: CreateEventParams): Promise<{ result: CreateResult }> {
     try {
       const stmt = this.db

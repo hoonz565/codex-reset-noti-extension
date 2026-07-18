@@ -370,3 +370,5 @@ A new `source_snapshots` record is created on every poll. The public API exposes
 | --- | ------------------------------------------------------------------------- | -------------------------------------- |
 | N1  | Cycle A: 70% sent; RESET_COMPLETED; Cycle B starts; prob crosses 70 again | New PROB_70 emitted in Cycle B         |
 | N2  | Cycle A: ANNOUNCED sent; RESET_COMPLETED; Cycle B starts; announced again | New RESET_ANNOUNCED emitted in Cycle B |
+
+Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.
