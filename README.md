@@ -27,17 +27,17 @@ Cloudflare Workers + D1 based architecture to monitor and notify when the Codex 
 
 ## Project Status
 
-| Phase     | Name                     | Status   | Branch                            |
-| --------- | ------------------------ | -------- | --------------------------------- |
-| Phase 0   | Product Requirements     | APPROVED | `phase-0-discovery`               |
-| Phase 0.5 | Architecture & Contracts | APPROVED | `phase-0.5-architecture`          |
-| Phase 1   | Project Foundation       | APPROVED | `phase-1-project-foundation`      |
-| Phase 1A  | Transport Spike          | APPROVED | `phase-1a-worker-extension-spike` |
-| Phase 2   | D1 Persistence           | APPROVED | `phase-2-d1-persistence`          |
-| Phase 3   | Source Snapshots         | PLANNED  | `phase-3-source-snapshots`        |
-| Phase 4   | Cycle & Event Detection  | PLANNED  | `phase-4-cycle-event-detection`   |
-| Phase 5   | Subscription Management  | PLANNED  | `phase-5-subscription-management` |
-| Phase 6   | Notification Delivery    | PLANNED  | `phase-6-email-delivery`          |
-| Phase 7   | Cron Orchestration       | PLANNED  | `phase-7-cron-orchestration`      |
-| Phase 8   | Extension UI             | PLANNED  | `phase-8-extension-ui`            |
-| Phase 9   | Production Release       | PLANNED  | `phase-9-production-release`      |
+| Phase     | Name                     | Status                       | Branch                            |
+| --------- | ------------------------ | ---------------------------- | --------------------------------- |
+| Phase 0   | Product Requirements     | APPROVED                     | `phase-0-discovery`               |
+| Phase 0.5 | Architecture & Contracts | APPROVED                     | `phase-0.5-architecture`          |
+| Phase 1   | Project Foundation       | APPROVED                     | `phase-1-project-foundation`      |
+| Phase 1A  | Transport Spike          | APPROVED                     | `phase-1a-worker-extension-spike` |
+| Phase 2   | D1 Persistence           | APPROVED                     | `phase-2-d1-persistence`          |
+| Phase 3   | Source Snapshots         | IMPLEMENTED — PENDING REVIEW | `phase-3-source-snapshots`        |
+| Phase 4   | Cycle & Event Detection  | PLANNED                      | `phase-4-cycle-event-detection`   |
+| Phase 5   | Subscription Management  | PLANNED                      | `phase-5-subscription-management` |
+| Phase 6   | Notification Delivery    | PLANNED                      | `phase-6-email-delivery`          |
+| Phase 7   | Cron Orchestration       | PLANNED                      | `phase-7-cron-orchestration`      |
+| Phase 8   | Extension UI             | PLANNED                      | `phase-8-extension-ui`            |
+| Phase 9   | Production Release       | PLANNED                      | `phase-9-production-release`      |

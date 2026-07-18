@@ -55,16 +55,46 @@ Call the public upstream forecast endpoint, runtime-validate its response, norma
 
 ## 9. Current status
 
-PLANNED
+IMPLEMENTED — PENDING REVIEW
 
 ## 10. Suggested Git branch
 
 `phase-3-source-snapshots`
 
-## 11. Completion evidence or links to reports
+## 11. Unknown Field Handling
+
+Unknown upstream fields are tolerated by the raw schema but are not trusted automatically.
+Specifically, unknown fields:
+
+- Are **not** exposed in `CodexResetStatus`.
+- Are **not** persisted as part of the raw snapshot payload (the system only hashes canonical fields and persists atomic typed values, not the raw JSON).
+- Are **not** included in the semantic hash by default.
+- Are **not** logged on normal success to prevent log noise.
+- Are **not** interpreted as new lifecycle or event data.
+
+## 12. Hash Volatility Policy
+
+The `PayloadHasher` ensures deterministic and semantic hashing by sorting keys.
+
+- **Excluded**: `checkedAt` and `sourceUpdatedAt` are strictly excluded from the canonical JSON stringified representation. This ensures that timestamps alone do not trigger hash changes.
+- **Included**: Semantic data such as `probability`, `lifecycle`, `latestResetAt`, `sourceHealth`, `sourceWarnings`, `title`, and `latestSignalId` remain included.
+
+## 13. Stale Data Policy
+
+When a source is unavailable but a valid snapshot exists previously:
+
+- `sourceHealth` remains `unavailable`.
+- `SOURCE_DATA_STALE` is appended to warnings.
+- `checkedAt` is the current failed attempt time.
+- `sourceUpdatedAt` remains the previous valid source time.
+- The persisted probability is display/history data only.
+- No event or delivery row is created.
+- **Phase 4 constraint**: Stale data is explicitly forbidden from being used as fresh evidence for event detection or cycle transitions.
+
+## 14. Completion evidence or links to reports
 
 - N/A
 
-## 12. Risks and unresolved questions
+## 15. Risks and unresolved questions
 
 - Upstream schema changes (mitigated by tolerant parsing).

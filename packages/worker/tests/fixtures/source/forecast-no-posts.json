@@ -1,0 +1,15 @@
+{
+  "fetchedAt": "2026-07-18T12:00:00.000Z",
+  "nextRefreshAt": "2026-07-18T12:15:00.000Z",
+  "refreshCount": 104,
+  "forecast": {
+    "score": 73,
+    "resetAnnounced": false,
+    "daysSinceReset": 4,
+    "hoursSinceReset": 98,
+    "hoursSinceResetAnnouncement": null,
+    "latestResetAt": "2026-07-14T10:00:00.000Z"
+  },
+  "tiboPosts": [],
+  "sourceErrors": {}
+}
