@@ -16,6 +16,7 @@ The development Extension ID must **never** be conflated with the production ID.
 The production Extension ID is assigned uniquely by the Chrome Web Store upon publishing.
 
 Our Wrangler `ALLOWED_ORIGINS` environment variables cleanly separate these concerns:
+
 - **Local/Dev:** Uses the deterministically generated unpacked ID.
 - **Production:** Uses the actual Chrome Web Store ID (added post-MVP).
 

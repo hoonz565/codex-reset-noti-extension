@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "test": "vitest run",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "echo 'Not implemented for remote' && exit 1",
+    "db:reset:local": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS subscribers; DROP TABLE IF EXISTS reset_cycles; DROP TABLE IF EXISTS source_snapshots; DROP TABLE IF EXISTS reset_events; DROP TABLE IF EXISTS notification_deliveries; DROP TABLE IF EXISTS rate_limit_records; DROP TABLE IF EXISTS audit_events; DROP TABLE IF EXISTS d1_migrations;\"",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json"
   },

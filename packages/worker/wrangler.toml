@@ -5,3 +5,9 @@ compatibility_date = "2024-03-20"
 [vars]
 ENVIRONMENT = "development"
 ALLOWED_ORIGINS = "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://untrusted-client-id,chrome-extension://local-test-id"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "codex_reset_dev"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

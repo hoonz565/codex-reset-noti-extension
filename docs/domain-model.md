@@ -80,7 +80,9 @@ interface CodexResetStatus {
    * Current forecast probability, 0–100 integer, or null.
    *
    * Sources from forecast.score.
-   * null when sourceHealth === "unavailable".
+   * It must be a number between 0 and 100 if the source is healthy or degraded.
+   * If the source is unavailable, probability may be null or a numeric value (preserving the last known probability).
+   * Note for Phase 3: An unavailable snapshot with a numeric probability does not represent fresh source evidence and must not trigger subscriber events.
    * Never fabricated from error conditions.
    * Probability and lifecycle are INDEPENDENT — a completed reset
    * does not reset or nullify this field.
