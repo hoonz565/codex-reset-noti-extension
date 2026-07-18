@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Codex Reset Notifier Spike</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        width: 300px;
+        padding: 10px;
+      }
+      .status {
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 4px;
+      }
+      .error {
+        color: red;
+      }
+      .success {
+        color: green;
+      }
+      button {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Codex Reset</h2>
+    <div class="status" id="status-container">Loading status...</div>
+
+    <h3>Subscribe</h3>
+    <label><input type="checkbox" id="alert-70" checked /> Likelihood reaches 70%</label><br />
+    <label><input type="checkbox" id="alert-announced" checked /> A reset is announced</label><br />
+    <label>Email: <input type="email" id="email" value="test@example.com" /></label><br />
+    <button id="subscribe-btn">Subscribe</button>
+
+    <div id="sub-result" style="margin-top: 10px"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
