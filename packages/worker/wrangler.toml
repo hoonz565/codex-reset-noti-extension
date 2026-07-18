@@ -1,0 +1,7 @@
+name = "codex-reset-notifier"
+main = "src/index.ts"
+compatibility_date = "2024-03-20"
+
+[vars]
+ENVIRONMENT = "development"
+ALLOWED_ORIGINS = "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://untrusted-client-id,chrome-extension://local-test-id"
