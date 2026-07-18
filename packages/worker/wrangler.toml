@@ -5,6 +5,10 @@ compatibility_date = "2024-03-20"
 [vars]
 ENVIRONMENT = "development"
 ALLOWED_ORIGINS = "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://untrusted-client-id,chrome-extension://local-test-id"
+ADMIN_API_TOKEN = "test-admin-secret"
+
+[triggers]
+crons = ["*/5 * * * *"]
 
 [[d1_databases]]
 binding = "DB"

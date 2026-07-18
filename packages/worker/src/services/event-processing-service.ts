@@ -8,7 +8,7 @@ import { CycleStateResolver } from '../events/cycle-resolver';
 import { FreshEvidencePolicy } from '../events/fresh-evidence';
 import { EventCandidateDetector } from '../events/event-candidates';
 import { EventPrecedenceResolver } from '../events/event-precedence';
-import { EventProcessingResult } from '../events/event-types';
+import { EventProcessingResult, EventCandidate } from '../events/event-types';
 
 export class EventProcessingService {
   constructor(
@@ -111,8 +111,9 @@ export class EventProcessingService {
     }
 
     // 6. Idempotency & Persistence
+    const newEventId = crypto.randomUUID();
     const eventRes = await this.eventRepo.createIfAbsent({
-      id: crypto.randomUUID(),
+      id: newEventId,
       reset_cycle_id: cycleId,
       type: winner.type,
       threshold: winner.condition.threshold,
@@ -130,6 +131,6 @@ export class EventProcessingService {
       return { outcome: 'failed', error: 'DATABASE_ERROR' };
     }
 
-    return { outcome: 'event_created', cycleId, event: winner };
+    return { outcome: 'event_created', cycleId, eventId: newEventId, event: winner };
   }
 }

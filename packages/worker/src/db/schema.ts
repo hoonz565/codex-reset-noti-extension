@@ -113,6 +113,34 @@ export interface AuditEventRow {
   created_at: string;
 }
 
+export interface OrchestrationRunRow {
+  id: string;
+  trigger_type: string; // 'scheduled' | 'admin'
+  status: string; // 'running' | 'completed' | 'completed_with_errors' | 'skipped_overlap' | 'failed'
+  started_at: string;
+  finished_at: string | null;
+  source_outcome: string | null;
+  snapshot_id: string | null;
+  events_created: number;
+  deliveries_prepared: number;
+  deliveries_sent: number;
+  deliveries_retried: number;
+  deliveries_failed: number;
+  deliveries_cancelled: number;
+  stale_deliveries_recovered: number;
+  error_code: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrchestrationLockRow {
+  name: string;
+  owner_run_id: string;
+  acquired_at: string;
+  expires_at: string;
+  updated_at: string;
+}
+
 // ============================================================================
 // MAPPERS
 // ============================================================================
@@ -228,4 +256,26 @@ export function mapAuditEventRow(row: AuditEventRow) {
     type: row.type as OperationalEventType,
     payload: parsedPayload,
   };
+}
+
+export function mapOrchestrationRunRow(row: OrchestrationRunRow) {
+  const allowedStatuses = [
+    'running',
+    'completed',
+    'completed_with_errors',
+    'skipped_overlap',
+    'failed',
+  ];
+  if (!allowedStatuses.includes(row.status)) {
+    throw new Error(`Invalid orchestration run status in DB: ${row.status}`);
+  }
+  return {
+    ...row,
+    trigger_type: row.trigger_type as 'scheduled' | 'admin',
+    status: row.status as 'running' | 'completed' | 'completed_with_errors' | 'skipped_overlap' | 'failed',
+  };
+}
+
+export function mapOrchestrationLockRow(row: OrchestrationLockRow) {
+  return row;
 }

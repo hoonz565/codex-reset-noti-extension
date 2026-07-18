@@ -19,7 +19,7 @@ describe('Database Migrations', () => {
     expect(results).toBeDefined();
   });
 
-  test('MIG-2: Expected seven tables exist', async () => {
+  test('MIG-2: Expected nine tables exist', async () => {
     const { results } = await db
       .prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'"
@@ -29,6 +29,8 @@ describe('Database Migrations', () => {
     expect(tables).toEqual([
       'audit_events',
       'notification_deliveries',
+      'orchestration_locks',
+      'orchestration_runs',
       'rate_limit_records',
       'reset_cycles',
       'reset_events',

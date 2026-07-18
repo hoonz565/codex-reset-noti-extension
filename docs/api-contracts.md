@@ -359,40 +359,30 @@ sig = HMAC-SHA256(UNSUBSCRIBE_HMAC_SECRET, payload)
 
 All require `Authorization: Bearer <DISPATCH_SECRET>`. No CORS.
 
-### POST /admin/force-crawl
+### POST /admin/force-run
 
-Triggers an immediate source check. Calls the **same CrawlService as the Cron handler** (no logic duplication).
+Triggers an immediate orchestration run synchronously over HTTP. Replaces the old `/admin/force-crawl`.
 
 **Response 200:**
 
 ```json
 {
   "ok": true,
-  "snapshot": { "id": "...", "probability": 73, "lifecycle": "none", "sourceHealth": "healthy" },
-  "eventsEmitted": ["PROBABILITY_REACHED_70"]
+  "outcome": "completed",
+  "runId": "run-xyz",
+  "summary": {
+    "sourceOutcome": "fresh_snapshot_persisted",
+    "snapshotId": "snap-xyz",
+    "eventsCreated": 1,
+    "deliveriesPrepared": 150,
+    "deliveriesSent": 25,
+    "deliveriesRetried": 0,
+    "deliveriesFailed": 0,
+    "deliveriesCancelled": 0,
+    "staleDeliveriesRecovered": 0
+  }
 }
 ```
-
-### POST /admin/force-bootstrap-event
-
-Triggers subscriber event on cold start. Requires `ALLOW_BOOTSTRAP_OVERRIDE=true`.
-
-**Request:**
-
-```json
-{
-  "eventType": "RESET_ANNOUNCED",
-  "reason": "Service deployed mid-reset; subscribers need notification."
-}
-```
-
-### POST /admin/retry-deliveries
-
-Retries all `failed_retryable` deliveries within max attempt count.
-
-### GET /admin/status
-
-Returns internal operational status (cycle info, delivery stats, last crawl).
 
 ---
 
@@ -445,6 +435,6 @@ Security: Timing-safe comparison. Never raw email in URL.
 
 ---
 
-## 9. Internal Crawler → Worker (Cron)
+## 9. Internal Worker (Cron)
 
-The Cron handler IS the backend. No HTTP dispatch from crawler to Worker. The shared DISPATCH_SECRET is used only for admin HTTP endpoints.
+The Cron handler (`scheduled`) is the primary driver of all backend operations via `OrchestrationRunner`. It manages its own lock and time budget.

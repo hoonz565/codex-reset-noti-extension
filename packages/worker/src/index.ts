@@ -4,6 +4,7 @@ export interface Env {
   ALLOWED_ORIGINS: string;
   DB: D1Database;
   RATE_LIMIT_SECRET: string;
+  ADMIN_API_TOKEN?: string;
 }
 
 /**
@@ -114,6 +115,46 @@ export default {
       }
     }
 
+    if (url.pathname.startsWith('/api/admin/orchestration/run')) {
+      const { createOrchestrationRunner } = await import('./orchestration/factory');
+      const { defaultOrchestrationConfig } = await import('./orchestration/orchestration-config');
+      const { handleAdminRunRequest } = await import('./http/admin-routes');
+      const { ForceRunService } = await import('./services/force-run-service');
+      const { SourceForecastClient } = await import('./source/forecast-client');
+      const { MockEmailProvider } = await import('./email/providers/mock-email-provider');
+      const { EmailTemplateRenderer } = await import('./email/email-template-renderer');
+
+      // We instantiate the runner dependencies here lazily.
+      const sourceClient = new SourceForecastClient({ url: 'https://willcodexquotareset.com/api/forecast' });
+      const emailProvider = new MockEmailProvider();
+      const templateRenderer = new EmailTemplateRenderer('https://management-url.com');
+      const runner = createOrchestrationRunner(env.DB, defaultOrchestrationConfig, emailProvider, templateRenderer, sourceClient);
+      const forceRunService = new ForceRunService(runner);
+
+      const response = await handleAdminRunRequest(request, env.ADMIN_API_TOKEN || '', forceRunService);
+      const corsResponse = new Response(response.body, response);
+      const headers = handleCors(request, env);
+      headers.forEach((v, k) => corsResponse.headers.set(k, v));
+      return corsResponse;
+    }
+
     return new Response('Not found', { status: 404 });
+  },
+
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    const { createOrchestrationRunner } = await import('./orchestration/factory');
+    const { defaultOrchestrationConfig } = await import('./orchestration/orchestration-config');
+    const { ScheduledRunService } = await import('./services/scheduled-run-service');
+    const { SourceForecastClient } = await import('./source/forecast-client');
+    const { MockEmailProvider } = await import('./email/providers/mock-email-provider');
+    const { EmailTemplateRenderer } = await import('./email/email-template-renderer');
+
+    const sourceClient = new SourceForecastClient({ url: 'https://willcodexquotareset.com/api/forecast' });
+    const emailProvider = new MockEmailProvider();
+    const templateRenderer = new EmailTemplateRenderer('https://management-url.com');
+    const runner = createOrchestrationRunner(env.DB, defaultOrchestrationConfig, emailProvider, templateRenderer, sourceClient);
+    const scheduledService = new ScheduledRunService(runner);
+
+    ctx.waitUntil(scheduledService.execute());
   },
 } satisfies ExportedHandler<Env>;

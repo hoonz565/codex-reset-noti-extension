@@ -37,6 +37,7 @@ export type EventProcessingResult =
   | {
       outcome: 'event_created';
       cycleId: string;
+      eventId: string;
       event: EventCandidate;
     }
   | {
