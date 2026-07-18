@@ -1,0 +1,27 @@
+{
+  "fetchedAt": "2026-07-18T12:00:00.000Z",
+  "nextRefreshAt": "2026-07-18T12:15:00.000Z",
+  "refreshCount": 100,
+  "forecast": {
+    "score": 73,
+    "resetAnnounced": false,
+    "daysSinceReset": 4,
+    "hoursSinceReset": 98,
+    "hoursSinceResetAnnouncement": null,
+    "latestResetAt": "2026-07-14T10:00:00.000Z"
+  },
+  "tiboPosts": [
+    {
+      "id": "post-1",
+      "text": "Monitoring quotas",
+      "url": "https://example.com/post-1",
+      "publishedAt": "2026-07-18T11:00:00.000Z",
+      "category": "update",
+      "tweetAssessment": {
+        "strength": 5,
+        "isResetAnnounced": false
+      }
+    }
+  ],
+  "sourceErrors": {}
+}

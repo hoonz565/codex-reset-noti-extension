@@ -48,7 +48,7 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 3 — Source Client and Snapshot Service
 
-**Status:** PLANNED
+**Status:** IMPLEMENTED — PENDING REVIEW
 **Suggested Branch:** `phase-3-source-snapshots`
 
 - **Purpose:** Call public upstream forecast endpoint, runtime-validate response, normalize source data, derive source health, select latest relevant signal, compute payload hashes, classify meaningful changes, persist source snapshots.
