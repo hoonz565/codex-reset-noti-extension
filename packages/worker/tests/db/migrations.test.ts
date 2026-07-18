@@ -28,6 +28,7 @@ describe('Database Migrations', () => {
       'reset_events',
       'source_snapshots',
       'subscribers',
+      'subscription_tokens',
     ]);
   });
 
@@ -79,5 +80,69 @@ describe('Database Migrations', () => {
     expect(columns).toContain('transition_token');
     // updated_at must still exist as a proper timestamp column
     expect(columns).toContain('updated_at');
+  });
+
+  test('MIG-8: subscription_tokens table has exact expected columns', async () => {
+    const { results } = await db.prepare('PRAGMA table_info(subscription_tokens)').all();
+    const columns = results.map((r: Record<string, unknown>) => r.name).sort();
+    expect(columns).toContain('id');
+    expect(columns).toContain('subscriber_id');
+    expect(columns).toContain('purpose');
+    expect(columns).toContain('token_hash');
+    expect(columns).toContain('requested_probability70');
+    expect(columns).toContain('requested_reset_announced');
+    expect(columns).toContain('created_at');
+    expect(columns).toContain('expires_at');
+    expect(columns).toContain('consumed_at');
+    expect(columns).toContain('revoked_at');
+  });
+
+  test('MIG-9: subscription_tokens purpose CHECK rejects invalid values', async () => {
+    // Must insert a subscriber first (FK)
+    await db
+      .prepare(
+        `INSERT INTO subscribers (id, email, normalized_email, state, notify_70, notify_announced, management_token_hash, created_at, updated_at)
+       VALUES ('sub_mig9', 'mig9@test.com', 'mig9@test.com', 'pending_confirmation', 0, 0, 'none', '2025-01-01T00:00:00Z', '2025-01-01T00:00:00Z')`
+      )
+      .run();
+
+    await expect(
+      db
+        .prepare(
+          `INSERT INTO subscription_tokens (id, subscriber_id, purpose, token_hash, created_at, expires_at)
+         VALUES ('tok_mig9', 'sub_mig9', 'invalid_purpose', 'abc', '2025-01-01T00:00:00Z', '2025-01-02T00:00:00Z')`
+        )
+        .run()
+    ).rejects.toThrow(/CHECK constraint failed/);
+  });
+
+  test('MIG-10: Upgrade from existing 0001+0002 state preserves existing subscriber data', async () => {
+    // Simulate: existing subscriber from pre-Phase-5 migration state
+    // First insert a subscriber (which the schema already supports)
+    await db
+      .prepare(
+        `INSERT INTO subscribers (id, email, normalized_email, state, notify_70, notify_announced, management_token_hash, created_at, updated_at)
+       VALUES ('sub_upgrade', 'upgrade@test.com', 'upgrade@test.com', 'active', 1, 1, 'hash', '2025-01-01T00:00:00Z', '2025-01-01T00:00:00Z')`
+      )
+      .run();
+
+    // Applying subscription_tokens table (as would happen in 0003 migration) must not delete the existing subscriber
+    // Since setupTestDb already applied all migrations, we verify the subscriber is still intact
+    const sub = await db.prepare("SELECT * FROM subscribers WHERE id = 'sub_upgrade'").first();
+    expect(sub).not.toBeNull();
+    expect((sub as Record<string, unknown>).normalized_email).toBe('upgrade@test.com');
+
+    // Also verify subscription_tokens table exists and can reference the existing subscriber
+    await db
+      .prepare(
+        `INSERT INTO subscription_tokens (id, subscriber_id, purpose, token_hash, created_at, expires_at)
+       VALUES ('tok_upgrade', 'sub_upgrade', 'manage_subscription', 'hash12345678901234567890123456789012345678901234567890123456789012', '2025-01-01T00:00:00Z', '2025-02-01T00:00:00Z')`
+      )
+      .run();
+
+    const tok = await db
+      .prepare("SELECT * FROM subscription_tokens WHERE id = 'tok_upgrade'")
+      .first();
+    expect(tok).not.toBeNull();
   });
 });

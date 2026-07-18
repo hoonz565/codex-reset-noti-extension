@@ -10,6 +10,7 @@ export async function setupTestDb() {
     DROP TABLE IF EXISTS reset_events;
     DROP TABLE IF EXISTS source_snapshots;
     DROP TABLE IF EXISTS reset_cycles;
+    DROP TABLE IF EXISTS subscription_tokens;
     DROP TABLE IF EXISTS subscribers;
     DROP TABLE IF EXISTS d1_migrations;
   `);
@@ -46,6 +47,22 @@ CREATE TABLE subscribers (
   CHECK (state IN ('pending_confirmation', 'active', 'unsubscribed', 'expired_confirmation'))
 );
 CREATE INDEX idx_subscribers_state ON subscribers(state);
+
+CREATE TABLE subscription_tokens (
+  id TEXT PRIMARY KEY,
+  subscriber_id TEXT NOT NULL,
+  purpose TEXT NOT NULL CHECK(purpose IN ('confirm_subscription', 'manage_subscription')),
+  token_hash TEXT NOT NULL UNIQUE,
+  requested_probability70 INTEGER,
+  requested_reset_announced INTEGER,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  consumed_at TEXT,
+  revoked_at TEXT,
+  FOREIGN KEY (subscriber_id) REFERENCES subscribers(id)
+);
+CREATE INDEX idx_subscription_tokens_lookup ON subscription_tokens(subscriber_id, purpose);
+CREATE INDEX idx_subscription_tokens_hash ON subscription_tokens(token_hash);
 
 CREATE TABLE reset_cycles (
   id TEXT PRIMARY KEY,

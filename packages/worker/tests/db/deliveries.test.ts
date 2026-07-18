@@ -23,16 +23,18 @@ describe('Notification Delivery Repository', () => {
 
     const ts = new Date().toISOString();
 
-    await subRepo.create({
-      id: 'sub_del',
-      email: 'del@ex.com',
-      normalized_email: 'del@ex.com',
-      state: 'active',
-      notify_70: true,
-      notify_announced: true,
-      management_token_hash: 'hash',
-      created_at: ts,
-    });
+    await subRepo
+      .getCreateStatement({
+        id: 'sub_del',
+        email: 'del@ex.com',
+        normalized_email: 'del@ex.com',
+        state: 'active',
+        notify_70: true,
+        notify_announced: true,
+        management_token_hash: 'hash',
+        created_at: ts,
+      })
+      .run();
 
     await cycleRepo.create({
       id: 'cycle:del',

@@ -88,6 +88,19 @@ export interface RateLimitRecordRow {
   updated_at: string;
 }
 
+export interface SubscriptionTokenRow {
+  id: string;
+  subscriber_id: string;
+  purpose: string; // 'confirm_subscription' | 'manage_subscription'
+  token_hash: string;
+  requested_probability70: number | null; // 0 or 1
+  requested_reset_announced: number | null; // 0 or 1
+  created_at: string;
+  expires_at: string;
+  consumed_at: string | null;
+  revoked_at: string | null;
+}
+
 export interface AuditEventRow {
   id: string;
   type: string; // OperationalEventType
@@ -107,10 +120,33 @@ export function mapSubscriberRow(row: SubscriberRow) {
   if (!allowedStates.includes(row.state)) {
     throw new Error(`Invalid subscriber state in DB: ${row.state}`);
   }
+  // Domain mapper translation
+  const domainState =
+    row.state === 'pending_confirmation'
+      ? 'pending'
+      : row.state === 'expired_confirmation'
+        ? 'suppressed'
+        : row.state;
+
   return {
     ...row,
+    state: domainState as 'pending' | 'active' | 'unsubscribed' | 'suppressed',
     notify_70: row.notify_70 === 1,
     notify_announced: row.notify_announced === 1,
+  };
+}
+
+export function mapSubscriptionTokenRow(row: SubscriptionTokenRow) {
+  if (row.purpose !== 'confirm_subscription' && row.purpose !== 'manage_subscription') {
+    throw new Error(`Invalid subscription token purpose: ${row.purpose}`);
+  }
+  return {
+    ...row,
+    purpose: row.purpose as 'confirm_subscription' | 'manage_subscription',
+    requested_probability70:
+      row.requested_probability70 === null ? null : row.requested_probability70 === 1,
+    requested_reset_announced:
+      row.requested_reset_announced === null ? null : row.requested_reset_announced === 1,
   };
 }
 

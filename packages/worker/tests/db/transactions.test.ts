@@ -147,16 +147,18 @@ describe('Database Transactions', () => {
   test('DB-TX-3: Subscriber event plus delivery creation commits atomically', async () => {
     const ts = new Date().toISOString();
 
-    await subRepo.create({
-      id: 'sub_tx',
-      email: 'tx@ex.com',
-      normalized_email: 'tx@ex.com',
-      state: 'active',
-      notify_70: true,
-      notify_announced: true,
-      management_token_hash: 'hash',
-      created_at: ts,
-    });
+    await subRepo
+      .getCreateStatement({
+        id: 'sub_tx',
+        email: 'tx@ex.com',
+        normalized_email: 'tx@ex.com',
+        state: 'active',
+        notify_70: true,
+        notify_announced: true,
+        management_token_hash: 'hash',
+        created_at: ts,
+      })
+      .run();
 
     const evtId = crypto.randomUUID();
     const delId = crypto.randomUUID();
