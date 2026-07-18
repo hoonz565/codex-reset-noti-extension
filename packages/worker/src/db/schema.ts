@@ -75,6 +75,8 @@ export interface NotificationDeliveryRow {
   next_attempt_at: string | null;
   last_error_code: string | null;
   last_error_message: string | null;
+  processing_token: string | null;
+  processing_started_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -133,8 +135,14 @@ export function mapSubscriberRow(row: SubscriberRow) {
     state: domainState as 'pending' | 'active' | 'unsubscribed' | 'suppressed',
     notify_70: row.notify_70 === 1,
     notify_announced: row.notify_announced === 1,
+    preferences: {
+      probability70: row.notify_70 === 1,
+      resetAnnounced: row.notify_announced === 1,
+    },
   };
 }
+
+export type Subscriber = ReturnType<typeof mapSubscriberRow>;
 
 export function mapSubscriptionTokenRow(row: SubscriptionTokenRow) {
   if (row.purpose !== 'confirm_subscription' && row.purpose !== 'manage_subscription') {
@@ -192,7 +200,6 @@ export function mapNotificationDeliveryRow(row: NotificationDeliveryRow) {
     'pending',
     'processing',
     'sent_to_provider',
-    'failed_retryable',
     'failed_permanent',
     'cancelled',
   ];

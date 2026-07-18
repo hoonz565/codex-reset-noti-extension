@@ -29,6 +29,11 @@ export class SubscriberRepository {
     const row = await stmt.first<SubscriberRow>();
     return row ? mapSubscriberRow(row) : null;
   }
+  async listAllActive() {
+    const stmt = this.db.prepare(`SELECT * FROM subscribers WHERE state = 'active'`);
+    const { results } = await stmt.all<SubscriberRow>();
+    return results.map(mapSubscriberRow);
+  }
 
   async createIfNotExists(
     params: CreateSubscriberParams

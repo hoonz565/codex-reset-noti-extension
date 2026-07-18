@@ -140,18 +140,20 @@ describe('Notification Delivery Repository', () => {
   });
 
   test('DB-DEL-4: Claim pending delivery for processing safely', async () => {
-    const claimed = await repo.claimForProcessing('del_1', new Date().toISOString());
-    expect(claimed).toBe(true);
+    const ts = new Date().toISOString();
+    const claim = await repo.claimForProcessing('del_1', 'tok_1', ts, ts, ts);
+    expect(claim.outcome).toBe('claimed');
 
     const delivery = await repo.findById('del_1');
     expect(delivery?.state).toBe('processing');
 
-    const claimedAgain = await repo.claimForProcessing('del_1', new Date().toISOString());
-    expect(claimedAgain).toBe(false); // Already processing
+    const claimAgain = await repo.claimForProcessing('del_1', 'tok_2', ts, ts, ts);
+    expect(claimAgain.outcome).toBe('already_claimed'); // Already processing
   });
 
   test('DB-DEL-5: Stuck processing row can be released according to repository contract', async () => {
-    await repo.releaseStuckProcessing('del_1', new Date().toISOString());
+    const ts = new Date().toISOString();
+    await repo.recoverStaleClaim('del_1', 'tok_1', ts, ts);
 
     const delivery = await repo.findById('del_1');
     expect(delivery?.state).toBe('pending');
