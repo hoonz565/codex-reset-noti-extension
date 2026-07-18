@@ -40,10 +40,34 @@ export class SourceSnapshotRepository {
     await stmt.run();
   }
 
+  async findById(id: string) {
+    const stmt = this.db.prepare(`SELECT * FROM source_snapshots WHERE id = ?`).bind(id);
+    const row = await stmt.first<SourceSnapshotRow>();
+    return row || null;
+  }
+
+  async findLatestValidBefore(snapshotId: string, cycleId: string) {
+    const stmt = this.db
+      .prepare(
+        `
+      SELECT * FROM source_snapshots 
+      WHERE reset_cycle_id = ? 
+        AND id != ? 
+        AND source_health IN ('healthy', 'degraded') 
+        AND probability IS NOT NULL
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `
+      )
+      .bind(cycleId, snapshotId);
+    const row = await stmt.first<SourceSnapshotRow>();
+    return row || null;
+  }
+
   async findLatest() {
     const stmt = this.db.prepare(`SELECT * FROM source_snapshots ORDER BY created_at DESC LIMIT 1`);
     const row = await stmt.first<SourceSnapshotRow>();
-    return row ? mapSourceSnapshotRow(row) : null;
+    return row || null;
   }
 
   async findLatestValid() {
@@ -52,7 +76,7 @@ export class SourceSnapshotRepository {
       `SELECT * FROM source_snapshots WHERE probability IS NOT NULL ORDER BY created_at DESC LIMIT 1`
     );
     const row = await stmt.first<SourceSnapshotRow>();
-    return row ? mapSourceSnapshotRow(row) : null;
+    return row || null;
   }
 
   async listMeaningful(limit: number = 10) {

@@ -2,7 +2,6 @@ import { CreateSubscriberParams } from './repositories/SubscriberRepository';
 import { CreateEventParams } from './repositories/ResetEventRepository';
 import { CreateDeliveryParams } from './repositories/NotificationDeliveryRepository';
 import { CreateCycleParams } from './repositories/ResetCycleRepository';
-import { CreateSnapshotParams } from './repositories/SourceSnapshotRepository';
 import { CreateAuditParams } from './repositories/AuditEventRepository';
 
 export type CycleTransitionResult =
@@ -103,7 +102,7 @@ export class DbTransactions {
     oldCycleId: string,
     markCompletedAt: string,
     newCycleParams: CreateCycleParams,
-    newSnapshotParams: CreateSnapshotParams
+    snapshotId: string
   ): Promise<CycleTransitionResult> {
     const payloadJson = auditParams.payload ? JSON.stringify(auditParams.payload) : null;
 
@@ -121,9 +120,10 @@ export class DbTransactions {
       UPDATE reset_cycles 
       SET state = 'completed', updated_at = ?, completed_at = ?, transition_token = ? 
       WHERE id = ? AND state = 'active'
+        AND (SELECT reset_cycle_id FROM source_snapshots WHERE id = ?) = ?
     `
       )
-      .bind(markCompletedAt, markCompletedAt, transitionToken, oldCycleId);
+      .bind(markCompletedAt, markCompletedAt, transitionToken, oldCycleId, snapshotId, oldCycleId);
 
     const wasOldUpdated = `(SELECT 1 FROM reset_cycles WHERE id = ? AND state = 'completed' AND transition_token = ?)`;
 
@@ -169,37 +169,21 @@ export class DbTransactions {
         transitionToken
       );
 
-    const insertSnapshotStmt = this.db
+    const updateSnapshotStmt = this.db
       .prepare(
         `
-      INSERT INTO source_snapshots (
-        id, reset_cycle_id, probability, lifecycle, source_health, source_updated_at, checked_at, payload_hash, meaningful_change, created_at
-      ) 
-      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-      WHERE EXISTS ${wasOldUpdated}
+      UPDATE source_snapshots 
+      SET reset_cycle_id = ? 
+      WHERE id = ? AND reset_cycle_id = ? AND EXISTS ${wasOldUpdated}
     `
       )
-      .bind(
-        newSnapshotParams.id,
-        newSnapshotParams.reset_cycle_id,
-        newSnapshotParams.probability,
-        newSnapshotParams.lifecycle,
-        newSnapshotParams.source_health,
-        newSnapshotParams.source_updated_at,
-        newSnapshotParams.checked_at,
-        newSnapshotParams.payload_hash,
-        newSnapshotParams.meaningful_change ? 1 : 0,
-        newSnapshotParams.created_at,
-        oldCycleId,
-        transitionToken
-      );
+      .bind(newCycleParams.id, snapshotId, oldCycleId, oldCycleId, transitionToken);
 
-    // D1 batch guarantees all or nothing for the statement sequence.
     const res = await this.db.batch([
       updateOldCycleStmt,
       auditStmt,
       insertNewCycleStmt,
-      insertSnapshotStmt,
+      updateSnapshotStmt,
     ]);
 
     if (res[0].meta.changes > 0) {

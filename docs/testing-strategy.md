@@ -196,3 +196,5 @@ Run before each Chrome Web Store submission:
 [ ] Tab order: logical sequence
 [ ] Screen reader: aria-expanded, aria-live regions present
 ```
+
+Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.
