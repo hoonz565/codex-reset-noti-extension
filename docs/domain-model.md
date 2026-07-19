@@ -353,3 +353,7 @@ interface ResetCycle {
 ```
 
 Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.
+
+## Phase 8: Status and Metrics
+
+Added Public Reset Status and Admin Metrics concepts.

@@ -449,3 +449,7 @@ CREATE TABLE IF NOT EXISTS orchestration_locks (
   updated_at TEXT NOT NULL
 );
 ```
+
+## Phase 8: Metrics Indexes
+
+Added partial indices idx_orch_runs_started_status, idx_deliveries_processing_started, idx_reset_events_type_created via migration 0007.

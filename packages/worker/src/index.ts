@@ -1,4 +1,3 @@
-import { publicStatusResponseSchema } from '@codex-reset/shared';
 import { createOrchestrationRunner } from './orchestration/factory';
 import { defaultOrchestrationConfig } from './orchestration/orchestration-config';
 import { handleAdminRunRequest } from './http/admin-routes';
@@ -7,19 +6,19 @@ import { SourceForecastClient } from './source/forecast-client';
 import { MockEmailProvider } from './email/providers/mock-email-provider';
 import { EmailTemplateRenderer } from './email/email-template-renderer';
 import { ScheduledRunService } from './services/scheduled-run-service';
+import { createStatusRoutes } from './http/status-routes';
+import { createStatusReadService } from './status/status-factory';
+import { createMetricsRoutes } from './http/metrics-routes';
+import { createMetricsReadService } from './metrics/metrics-factory';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
   DB: D1Database;
   RATE_LIMIT_SECRET: string;
   ADMIN_API_TOKEN?: string;
+  ADMIN_SECRET?: string;
 }
 
-/**
- * CORS controls which browser origins may read responses.
- * CORS is not authentication and does not prevent curl, bots,
- * server-side clients, or forged direct requests.
- */
 const handleCors = (request: Request, env: Env) => {
   const origin = request.headers.get('Origin') || '';
   const isStatus = new URL(request.url).pathname === '/api/status';
@@ -27,14 +26,12 @@ const handleCors = (request: Request, env: Env) => {
   const allowedList = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim());
   const isAllowedOrigin = allowedList.includes(origin);
 
-  // GET /api/status is public read-only.
-  // POST /api/subscriptions requires specific origin.
   const allowedOrigin = isStatus ? '*' : isAllowedOrigin ? origin : '';
 
   return new Headers({
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     Vary: 'Origin',
   });
 };
@@ -43,62 +40,29 @@ const handleOptions = (request: Request, env: Env) => {
   return new Response(null, { headers: handleCors(request, env) });
 };
 
-const handleStatus = (request: Request, env: Env) => {
-  const url = new URL(request.url);
-  const isColdStart = url.searchParams.get('coldStart') === 'true';
-
-  let responseBody;
-  if (isColdStart) {
-    responseBody = {
-      ok: true,
-      sourceHealth: 'unavailable',
-      status: null,
-      message: 'No successful source check has completed yet.',
-    };
-  } else {
-    responseBody = {
-      ok: true,
-      sourceHealth: 'healthy',
-      status: {
-        schemaVersion: 1,
-        probability: 73,
-        lifecycle: 'none',
-        resetCycleId: 'cycle:transport-spike',
-        latestResetAt: null,
-        announcementAt: null,
-        title: 'High likelihood',
-        description: 'Transport spike status response.',
-        latestSignal: null,
-        sourceUrl: 'https://www.willcodexquotareset.com/',
-        sourceUpdatedAt: new Date().toISOString(),
-        checkedAt: new Date().toISOString(),
-        statusChangedAt: new Date().toISOString(),
-        publishedAt: new Date().toISOString(),
-        sourceHealth: 'healthy',
-        sourceWarnings: [],
-        parserVersion: 'transport-spike',
-      },
-    };
-  }
-
-  // Runtime validation
-  const parsed = publicStatusResponseSchema.parse(responseBody);
-
-  const headers = handleCors(request, env);
-  headers.set('Content-Type', 'application/json');
-  return new Response(JSON.stringify(parsed), { headers });
-};
-
 export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === 'OPTIONS') {
+    if (
+      request.method === 'OPTIONS' &&
+      !url.pathname.startsWith('/api/status') &&
+      !url.pathname.startsWith('/api/admin/metrics')
+    ) {
       return handleOptions(request, env);
     }
 
-    if (request.method === 'GET' && url.pathname === '/api/status') {
-      return handleStatus(request, env);
+    if (url.pathname.startsWith('/api/status')) {
+      const statusService = createStatusReadService(env.DB);
+      const router = createStatusRoutes(statusService);
+      const response = await router.fetch(request, env);
+      return response as Response;
+    }
+
+    if (url.pathname.startsWith('/api/admin/metrics')) {
+      const router = createMetricsRoutes(() => createMetricsReadService(env.DB));
+      const response = await router.fetch(request, env);
+      return response as Response;
     }
 
     if (url.pathname.startsWith('/api/subscriptions')) {
@@ -174,7 +138,6 @@ export default {
 
     ctx.waitUntil(
       scheduledService.execute().catch((err) => {
-        // Catch unexpected runner rejections to sanitize and avoid logging secrets
         console.error(`Unhandled orchestration failure: Error: ${err.message || 'CRITICAL'}`);
       })
     );

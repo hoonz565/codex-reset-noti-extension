@@ -1,26 +1,22 @@
-import { publicStatusResponseSchema, createSubscriptionRequestSchema } from '@codex-reset/shared';
+import { createSubscriptionRequestSchema } from '@codex-reset/shared';
 
-const API_BASE = 'http://127.0.0.1:8787';
+import { StatusClient } from './api/status-client';
+import { StatusViewModel } from './status/status-view-model';
+import { StatusController } from './status/status-controller';
+import { StatusDashboard } from './components/status-dashboard';
 
-async function fetchStatus() {
-  const container = document.getElementById('status-container')!;
-  try {
-    const res = await fetch(`${API_BASE}/api/status`);
-    if (!res.ok) throw new Error('Network response was not ok');
+// Access the injected variable
+const API_BASE = process.env.WORKER_API_BASE_URL || 'http://127.0.0.1:8787';
 
-    const data = await res.json();
-    const parsed = publicStatusResponseSchema.parse(data);
+let dashboard: StatusDashboard | null = null;
 
-    if (parsed.status) {
-      container.textContent = `Probability: ${parsed.status.probability}% | Lifecycle: ${parsed.status.title} | Health: ${parsed.sourceHealth}`;
-    } else {
-      container.textContent = `Cold start. Health: ${parsed.sourceHealth}`;
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    container.textContent = `Failed to load status: ${msg}`;
-    container.className = 'status error';
-  }
+function initStatusDashboard() {
+  const client = new StatusClient(API_BASE);
+  const viewModel = new StatusViewModel();
+  const controller = new StatusController(client, viewModel);
+
+  dashboard = new StatusDashboard('dashboard-container', viewModel, controller);
+  dashboard.mount();
 }
 
 async function subscribe() {
@@ -69,6 +65,6 @@ async function subscribe() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  fetchStatus();
+  initStatusDashboard();
   document.getElementById('subscribe-btn')?.addEventListener('click', subscribe);
 });

@@ -1,0 +1,73 @@
+.status-dashboard {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background-color: #f9f9f9;
+}
+
+.status-dashboard h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.status-content {
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.old-data-overlay {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.status-error {
+  color: #d32f2f;
+  margin-bottom: 8px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.status-empty {
+  background-color: #757575;
+}
+.status-fresh {
+  background-color: #388e3c;
+}
+.status-stale {
+  background-color: #f57c00;
+}
+.status-unavailable {
+  background-color: #d32f2f;
+}
+
+.status-details p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.refresh-btn {
+  width: 100%;
+  padding: 8px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background-color: #1565c0;
+}
+
+.refresh-btn:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}

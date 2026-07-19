@@ -5,6 +5,7 @@ import m3 from '../../migrations/0003_subscription_tokens.sql?raw';
 import m4 from '../../migrations/0004_delivery_processing.sql?raw';
 import m5 from '../../migrations/0005_delivery_state_correction.sql?raw';
 import m6 from '../../migrations/0006_orchestration.sql?raw';
+import m7 from '../../migrations/0007_dashboard_metrics.sql?raw';
 
 export async function setupTestDb() {
   const db = env.DB as D1Database;
@@ -44,6 +45,7 @@ export async function setupTestDb() {
   await applyMigration(m4);
   await applyMigration(m5);
   await applyMigration(m6);
+  await applyMigration(m7);
 
   return db;
 }

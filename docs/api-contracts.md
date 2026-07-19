@@ -438,3 +438,7 @@ Security: Timing-safe comparison. Never raw email in URL.
 ## 9. Internal Worker (Cron)
 
 The Cron handler (`scheduled`) is the primary driver of all backend operations via `OrchestrationRunner`. It manages its own lock and time budget.
+
+## Phase 8: API Contracts
+
+Added GET /api/status for public UI status and GET /api/admin/metrics for operational metrics.
