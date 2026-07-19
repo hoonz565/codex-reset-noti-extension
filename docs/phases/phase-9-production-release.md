@@ -2,57 +2,156 @@
 
 ## 1. Objective
 
-Deploy the production Worker, configure production D1, configure the email provider, run end-to-end staging tests, and prepare for Chrome Web Store release.
+Deploy the production Worker, configure production D1, configure the email provider, run end-to-end staging tests, and prepare for Chrome Web Store release. Execute these steps safely using explicit approval gates to prevent accidental production mutations.
 
-## 2. In scope
+## 2. Scope
 
 - Production environment configuration (`wrangler.toml` envs).
-- Secrets management.
+- Secrets management and runbooks.
 - CORS configuration for the production extension ID.
+- Email provider staging-safety and sandbox configuration.
+- Staging and production D1 deployment strategy.
+- Deterministic staging end-to-end verification.
 - Monitoring and operational runbooks.
-- Staging verification.
+- Chrome Web Store packaging validation.
 
-## 3. Out of scope
+## 3. Non-goals
 
 - Feature additions.
+- Implementation of Phase 10 functionality.
+- Direct Cloudflare Queue architecture implementation.
+- Provider webhooks implementation.
 
-## 4. Inputs/dependencies
+## 4. Immutable domain rules
 
-- All previous phases (1-8).
+- The subscriber-facing event model remains exactly: `PROBABILITY_REACHED_70`, `RESET_ANNOUNCED`.
+- No probability-90 event, preference, or notification.
+- No `RESET_COMPLETED` subscriber event, preference, delivery, or email. `RESET_COMPLETED` is for operational lifecycle only.
+- `RESET_ANNOUNCED` has precedence over `PROBABILITY_REACHED_70`.
+- Probability 100 does not imply `RESET_ANNOUNCED`.
+- Lifecycle state remains independent from probability.
+- `resetCycleId` remains anchored to `latestResetAt`.
+- Unavailable or untrusted evidence must never trigger subscriber events.
+- The extension must never fetch an upstream source directly.
+- CORS is not authentication.
+- Status and metrics read models remain read-only.
+- All Phase 1–8 behavior and tests must remain regression-free.
 
-## 5. Outputs/artifacts
+## 5. Environment topology
 
-- Deployed Cloudflare Worker.
-- Deployed D1 database.
-- Chrome Web Store submission package.
-- Operational runbooks in `docs/`.
+The system uses explicitly separated environments:
 
-## 6. Important domain rules
+- **Local Development**: Default environment. Uses local Miniflare D1.
+- **Staging**: Distinct Worker identity (`codex-reset-notifier-staging`). Distinct D1 Database. Accepts explicitly documented development origins.
+- **Production**: Distinct Worker identity (`codex-reset-notifier`). Distinct D1 Database. Accepts only the production Chrome Extension ID.
 
-- Production data must be strictly isolated from development data.
-- Secrets must never be committed to Git.
+## 6. Configuration strategy
 
-## 7. Required tests
+- Use explicit environments in `wrangler.toml` (`[env.staging]`, `[env.production]`).
+- Do not commit real database IDs or secret values.
+- D1 bindings must uniquely target their respective environment databases.
+- `ALLOWED_ORIGINS` is scoped tightly per environment. No wildcards (`*`) or `localhost` allowed in production.
 
-- End-to-end staging tests against the deployed Worker.
+## 7. Secret inventory
 
-## 8. Acceptance criteria
+- **ADMIN_API_TOKEN**: Protects `/api/admin/metrics`.
+- **EMAIL_PROVIDER_API_KEY**: Authenticates with the email provider.
+- Secrets are bound via Cloudflare `wrangler secret put` and are never committed to Git, fixtures, or `.dev.vars` (except placeholders).
+- See `docs/runbooks/secrets-management.md` for management details.
 
-- System is fully operational in production.
-- Extension is approved in the Chrome Web Store.
+## 8. D1 deployment strategy
 
-## 9. Current status
+- Staging and Production schemas are built strictly by replaying immutable historical migrations.
+- Do not alter historical migrations.
+- Migrations are applied explicitly with `wrangler d1 migrations apply DB --env <env>`.
+- See `docs/runbooks/d1-deployment.md`.
 
-PLANNED
+## 9. Worker deployment strategy
 
-## 10. Suggested Git branch
+- Require explicit environment selection (`--env production`).
+- Deploy staging before production.
+- Production deployment is blocked until Gate C is explicitly approved.
+- See `docs/runbooks/production-deployment.md`.
 
-`phase-9-production-release`
+## 10. CORS strategy
 
-## 11. Completion evidence or links to reports
+- Production Worker strictly enforces the production Chrome extension ID (`chrome-extension://<PRODUCTION_EXTENSION_ID>`).
+- If production ID is unknown, block deployment until available.
+- Forbidden Origins are rejected before database queries.
+- Public status CORS remains separate from admin authorization.
+- Admin metrics always require bearer authentication regardless of CORS.
 
-- N/A
+## 11. Email-provider strategy
 
-## 12. Risks and unresolved questions
+- No second provider abstraction. Use the existing structure.
+- Staging sends must be neutralized via forced test recipients, a sandbox API mode, or explicit disable flags to prevent emailing real users.
+- Production emails are only sent upon explicit approval.
+- See `docs/runbooks/email-provider.md`.
 
-- Chrome Web Store review delays.
+## 12. Staging E2E strategy
+
+- Add a deterministic test suite against the deployed staging environment (prefix `REL-E2E-*`).
+- Must verify: Health, GET `/api/status`, CORS, OPTIONS, Admin Metrics auth, Orchestration flow, Idempotency, and Staging email safety.
+- Exclude unpredictable external upstream state; use controlled staging fixtures.
+
+## 13. Chrome Web Store packaging
+
+- The extension ZIP must point to the production Worker base URL.
+- Exclude `localhost`, staging URLs, upstream URLs, secrets, source maps, and test files.
+- Manifest must request minimal required permissions.
+- Provide a deterministic ZIP script that produces a checksum.
+- See `docs/runbooks/chrome-web-store-release.md`.
+
+## 14. Monitoring and alerts
+
+- Document metrics for: Worker request failures, Orchestration failures, Delivery pending backlog, Stale processing leases, Provider errors, D1 failures, Deployment version, etc.
+- See `docs/runbooks/monitoring.md`.
+
+## 15. Operational runbooks
+
+Runbooks to be created in `docs/runbooks/`:
+
+- `secrets-management.md`
+- `d1-deployment.md`
+- `email-provider.md`
+- `production-deployment.md`
+- `rollback.md`
+- `incident-response.md`
+- `monitoring.md`
+- `chrome-web-store-release.md`
+
+## 16. Rollback procedures
+
+- Document limitations on D1 rollback (schema drops are risky; prefer forward fixes).
+- Worker deployment rollback requires deploying the previous Git SHA.
+- Chrome Web Store rollback follows Google's versioning procedures.
+- See `docs/runbooks/rollback.md`.
+
+## 17. Canonical acceptance requirements
+
+- Implement canonical validation tests for configurations: `REL-CONFIG-`, `REL-SECRET-`, `REL-D1-`, `REL-CORS-`, `REL-EMAIL-`, `REL-E2E-`, `REL-EXT-`, `REL-MON-`, `REL-RUNBOOK-`, `REL-SEC-`, `REL-BOUNDARY-`, `REL-PACKAGE-`.
+- Tests must prove: no secrets are committed, staging is safe, CORS is tight, SQL is parameterized, etc.
+
+## 18. External approval gates
+
+- **GATE A — LOCAL RELEASE READINESS**: Completed via automated CI checks (`npm test`, build, report generation).
+- **GATE B — STAGING DEPLOYMENT**: Blocked until valid staging credentials and resources are available.
+- **GATE C — PRODUCTION DEPLOYMENT**: Explicitly requires `APPROVED TO DEPLOY PHASE 9 TO PRODUCTION`.
+- **GATE D — CHROME WEB STORE SUBMISSION**: Explicitly requires `APPROVED TO SUBMIT PHASE 9 TO CHROME WEB STORE`.
+
+## 19. Completion evidence
+
+- All 656+ tests passing.
+- Validated staging and production `wrangler.toml`.
+- Runbooks created.
+- `phase-9-report.md` indicating readiness state and gate status.
+
+## 20. Remaining risks
+
+- Production Chrome Extension ID is not yet defined, which could block Gate B/C.
+- Chrome Web Store review delays may stall full release.
+- Lack of staging D1 DB bindings may block Gate B.
+
+## Current status
+
+IMPLEMENTING

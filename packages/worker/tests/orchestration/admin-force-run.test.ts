@@ -15,6 +15,8 @@ import '../../src/email/email-template-renderer';
 describe('Admin Force Run Route', () => {
   let env: any;
   let executeSpy: any;
+  let backgroundPromises: Promise<any>[] = [];
+  let ctx: any;
 
   beforeEach(async () => {
     env = {
@@ -23,13 +25,21 @@ describe('Admin Force Run Route', () => {
       ADMIN_API_TOKEN: 'secret-token',
       ALLOWED_ORIGINS: 'chrome-extension://123',
     };
+    backgroundPromises = [];
+    ctx = {
+      waitUntil: (p: Promise<any>) => backgroundPromises.push(p),
+      passThroughOnException: () => {},
+    };
     executeSpy = vi
       .spyOn(ForceRunService.prototype, 'execute')
       .mockResolvedValue({ outcome: 'completed' } as any);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
+    if (backgroundPromises.length > 0) {
+      await Promise.allSettled(backgroundPromises);
+    }
   });
 
   it('ORCH-ADMIN-1: Missing Authorization is rejected', async () => {
@@ -37,7 +47,7 @@ describe('Admin Force Run Route', () => {
       method: 'POST',
       body: null,
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(401);
     expect(executeSpy).not.toHaveBeenCalled();
@@ -49,7 +59,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer invalid' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(401);
     expect(executeSpy).not.toHaveBeenCalled();
@@ -61,7 +71,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer secret-token' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     expect(res.status).toBe(200);
     expect(executeSpy).toHaveBeenCalled(); // Prove ForceRunService which wraps the same runner is called
   });
@@ -72,7 +82,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer secret-token', Origin: 'http://evil.com' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     expect(res.status).toBe(403);
     expect(executeSpy).not.toHaveBeenCalled();
   });
@@ -83,7 +93,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Origin: 'chrome-extension://123' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(401);
     expect(executeSpy).not.toHaveBeenCalled();
@@ -94,7 +104,7 @@ describe('Admin Force Run Route', () => {
       method: 'POST',
       body: null,
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(401);
     expect(executeSpy).not.toHaveBeenCalled();
@@ -106,7 +116,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer secret-token' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     const body = await res.json();
     expect(res.status).toBe(200);
     // ForceRunService returns outcome. Here we mocked it to 'completed'
@@ -120,7 +130,7 @@ describe('Admin Force Run Route', () => {
       headers: { Authorization: 'Bearer secret-token' },
     });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     const text = await res.text();
     expect(text).not.toContain('secret-token');
     // Ensure no logs leaked it either
@@ -138,7 +148,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer secret-token' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     const body = await res.json();
     expect((body as any).outcome).toBe('skipped_overlap');
   });
@@ -148,7 +158,7 @@ describe('Admin Force Run Route', () => {
       method: 'PUT',
       headers: { Authorization: 'Bearer secret-token' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect([404, 405]).toContain(res.status);
     expect(executeSpy).not.toHaveBeenCalled();
@@ -160,7 +170,7 @@ describe('Admin Force Run Route', () => {
       headers: { Authorization: 'Bearer secret-token' },
       body: JSON.stringify({ trigger: 'now' }),
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(400); // bad request
     expect(executeSpy).not.toHaveBeenCalled();
@@ -171,7 +181,7 @@ describe('Admin Force Run Route', () => {
       method: 'OPTIONS',
       headers: { Origin: 'http://evil.com' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('');
   });
@@ -182,7 +192,7 @@ describe('Admin Force Run Route', () => {
       body: null,
       headers: { Authorization: 'Bearer subscriber-token' },
     });
-    const res = await worker.fetch(req, env, {} as any);
+    const res = await worker.fetch(req, env, ctx);
     await res.text();
     expect(res.status).toBe(401);
     expect(executeSpy).not.toHaveBeenCalled();

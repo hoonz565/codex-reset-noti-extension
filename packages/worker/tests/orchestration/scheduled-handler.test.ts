@@ -69,5 +69,6 @@ describe('Scheduled Trigger Entry Point', () => {
     expect(waitUntilMock).toHaveBeenCalled();
     const promise = waitUntilMock.mock.calls[0][0];
     expect(promise).toBeInstanceOf(Promise);
+    await Promise.allSettled([promise]);
   });
 });
