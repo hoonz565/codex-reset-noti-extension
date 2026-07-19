@@ -198,3 +198,7 @@ Run before each Chrome Web Store submission:
 ```
 
 Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.
+
+## Phase 8: DASH Tests
+
+Added DASH-* test suite ensuring Dashboard and Metrics UI integration and boundary isolation.

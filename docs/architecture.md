@@ -261,3 +261,7 @@ Rationale:
 **Cron expression:** `*/15 * * * *`
 
 **Jitter:** Cloudflare does not support per-cron jitter natively. The Worker may add a randomized sleep of 0–60s before fetching if desired, but this is optional for MVP.
+
+## Phase 8: Dashboard and Metrics
+
+Added StatusDashboard component to the extension and /api/status, /api/admin/metrics to the worker.

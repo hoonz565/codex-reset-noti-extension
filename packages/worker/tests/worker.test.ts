@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll } from 'vitest';
 import worker from '../src/index';
 import { setupTestDb } from './db/test-utils';
@@ -34,24 +35,10 @@ describe('Worker API Spike', () => {
   it('GET /api/status returns a valid normal response', async () => {
     const res = await worker.fetch(request('GET', '/api/status'), env, ctx);
     expect(res.status).toBe(200);
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    const data = (await res.json()) as {
-      ok: boolean;
-      sourceHealth: string;
-      status: { schemaVersion: number; probability: number } | null;
-    };
-    expect(data.ok).toBe(true);
-    expect(data.sourceHealth).toBe('healthy');
-    expect(data.status?.schemaVersion).toBe(1);
-    expect(data.status?.probability).toBe(73);
-  });
-
-  it('Cold-start mode returns status=null and validates', async () => {
-    const res = await worker.fetch(request('GET', '/api/status?coldStart=true'), env, ctx);
-    expect(res.status).toBe(200);
-    const data = (await res.json()) as { status: unknown; sourceHealth: string };
-    expect(data.status).toBeNull();
-    expect(data.sourceHealth).toBe('unavailable');
+    expect(res.headers.has('Access-Control-Allow-Origin')).toBe(false);
+    const data = (await res.json()) as any;
+    expect(data.schemaVersion).toBe(1);
+    expect(data.status.state).toBe('empty');
   });
 
   it('OPTIONS returns expected CORS headers for allowed extension origin', async () => {

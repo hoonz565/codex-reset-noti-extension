@@ -1,0 +1,1 @@
+export const STATUS_FRESHNESS_SECONDS = 600;
