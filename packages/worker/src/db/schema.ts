@@ -272,7 +272,8 @@ export function mapOrchestrationRunRow(row: OrchestrationRunRow) {
   return {
     ...row,
     trigger_type: row.trigger_type as 'scheduled' | 'admin',
-    status: row.status as 'running' | 'completed' | 'completed_with_errors' | 'skipped_overlap' | 'failed',
+    status: row.status as
+      'running' | 'completed' | 'completed_with_errors' | 'skipped_overlap' | 'failed',
   };
 }
 

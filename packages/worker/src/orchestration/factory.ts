@@ -41,10 +41,27 @@ export function createOrchestrationRunner(
 
   // Phase 3-6 Services
   const snapshotService = new SnapshotService(sourceClient, cycleRepo, snapshotRepo);
-  const eventService = new EventProcessingService(tx, cycleRepo, eventRepo, snapshotRepo, auditRepo);
-  const preparationService = new DeliveryPreparationService(eventRepo, subscriberRepo, deliveryRepo, auditRepo);
+  const eventService = new EventProcessingService(
+    tx,
+    cycleRepo,
+    eventRepo,
+    snapshotRepo,
+    auditRepo
+  );
+  const preparationService = new DeliveryPreparationService(
+    eventRepo,
+    subscriberRepo,
+    deliveryRepo,
+    auditRepo
+  );
   const processingService = new DeliveryProcessingService(
-    deliveryRepo, subscriberRepo, eventRepo, snapshotRepo, auditRepo, emailProvider, templateRenderer
+    deliveryRepo,
+    subscriberRepo,
+    eventRepo,
+    snapshotRepo,
+    auditRepo,
+    emailProvider,
+    templateRenderer
   );
   const recoveryService = new DeliveryRecoveryService(deliveryRepo, auditRepo);
 

@@ -1,10 +1,7 @@
 export type TriggerType = 'scheduled' | 'admin';
 
 export type OrchestrationOutcome =
-  | 'completed'
-  | 'completed_with_errors'
-  | 'skipped_overlap'
-  | 'failed';
+  'completed' | 'completed_with_errors' | 'skipped_overlap' | 'failed';
 
 export type OrchestrationRunResult =
   | {

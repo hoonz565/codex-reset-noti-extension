@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DeliveryProcessingService } from '../services/delivery-processing-service';
 import { DeliveryRecoveryService } from '../services/delivery-recovery-service';
 import { OrchestrationBudget } from './orchestration-budget';
@@ -39,7 +40,7 @@ export class DeliveryDispatchService {
     ) {
       // Pick next delivery and process
       const processRes = await this.processingService.processNextDueDelivery();
-      
+
       if (processRes.outcome === 'none_due') {
         break; // No due work
       }
@@ -53,9 +54,7 @@ export class DeliveryDispatchService {
         processRes.outcome === 'failed_permanent' // just in case
       ) {
         summary.addDeliveriesFailed(1);
-      } else if (
-        processRes.outcome.startsWith('cancelled_')
-      ) {
+      } else if (processRes.outcome.startsWith('cancelled_')) {
         summary.addDeliveriesCancelled(1);
       } else if (processRes.outcome.startsWith('fatal_')) {
         // internal DB error during process

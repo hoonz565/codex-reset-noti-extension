@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { OrchestrationRunRow, mapOrchestrationRunRow } from '../schema';
 
 export type CreateRunParams = {
@@ -31,15 +32,24 @@ export class OrchestrationRunRepository {
 
   async create(params: CreateRunParams): Promise<boolean> {
     try {
-      const res = await this.db.prepare(
-        `
+      const res = await this.db
+        .prepare(
+          `
         INSERT INTO orchestration_runs (
           id, trigger_type, status, started_at, finished_at, created_at, updated_at
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         `
-      ).bind(
-        params.id, params.trigger_type, params.status, params.started_at, params.finished_at ?? null, params.created_at, params.updated_at
-      ).run();
+        )
+        .bind(
+          params.id,
+          params.trigger_type,
+          params.status,
+          params.started_at,
+          params.finished_at ?? null,
+          params.created_at,
+          params.updated_at
+        )
+        .run();
       return res.meta.changes > 0;
     } catch {
       return false;
@@ -62,24 +72,35 @@ export class OrchestrationRunRepository {
     if (fields.length === 0) return true;
 
     values.push(id);
-    const query = `UPDATE orchestration_runs SET ${fields.join(', ')} WHERE id = ?${idx}`;
+    const query = `UPDATE orchestration_runs SET ${fields.join(', ')} WHERE id = ?${idx} AND status = 'running'`;
 
-    const res = await this.db.prepare(query).bind(...values).run();
+    const res = await this.db
+      .prepare(query)
+      .bind(...values)
+      .run();
     return res.meta.changes > 0;
   }
 
   async findById(id: string) {
-    const row = await this.db.prepare(`SELECT * FROM orchestration_runs WHERE id = ?1`).bind(id).first<OrchestrationRunRow>();
+    const row = await this.db
+      .prepare(`SELECT * FROM orchestration_runs WHERE id = ?1`)
+      .bind(id)
+      .first<OrchestrationRunRow>();
     return row ? mapOrchestrationRunRow(row) : null;
   }
 
   async markStaleRunFailed(id: string, finishedAtIso: string): Promise<boolean> {
     // Only overwrite if it is currently 'running' (not already finalized)
-    const res = await this.db.prepare(`
+    const res = await this.db
+      .prepare(
+        `
       UPDATE orchestration_runs 
       SET status = 'failed', error_code = 'LEASE_EXPIRED', finished_at = ?1, updated_at = ?1 
       WHERE id = ?2 AND status = 'running'
-    `).bind(finishedAtIso, id).run();
+    `
+      )
+      .bind(finishedAtIso, id)
+      .run();
     return res.meta.changes > 0;
   }
 }

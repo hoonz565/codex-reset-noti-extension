@@ -5,7 +5,7 @@ import { ForceRunService } from '../services/force-run-service';
 export async function handleAdminRunRequest(
   request: Request,
   envSecret: string,
-  forceRunService: ForceRunService
+  forceRunServiceFactory: () => ForceRunService
 ): Promise<Response> {
   // CORS preflight is handled upstream (in index.ts) for OPTIONS.
   // This route expects only POST.
@@ -25,6 +25,7 @@ export async function handleAdminRunRequest(
   }
 
   // 3. Execute
+  const forceRunService = forceRunServiceFactory();
   const result = await forceRunService.execute();
 
   return successResponse(result);

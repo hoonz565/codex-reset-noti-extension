@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function unauthorized(code: string): Response {
   return new Response(JSON.stringify({ error: code }), {
     status: 401,

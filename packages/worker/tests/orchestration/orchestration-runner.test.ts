@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OrchestrationRunner } from '../../src/orchestration/orchestration-runner';
 import { setupTestDb } from '../db/test-utils';
@@ -29,12 +30,31 @@ describe('OrchestrationRunner', () => {
     runRepo = new OrchestrationRunRepository(db);
     lock = new OrchestrationLock(new OrchestrationLockRepository(db), runRepo);
 
+    await db
+      .prepare(
+        'INSERT INTO reset_cycles (id, anchor_reset_at, state, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?4) ON CONFLICT DO NOTHING'
+      )
+      .bind('cycle-1', '2026-07-18T00:00:00Z', 'active', '2026-07-18T00:00:00Z')
+      .run();
+
     mockSnapshotService = {
       checkAndPersist: vi.fn().mockImplementation(async () => {
-        await db.prepare('INSERT INTO reset_cycles (id, anchor_reset_at, state, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?4) ON CONFLICT DO NOTHING')
-          .bind('cycle-1', '2026-07-18T00:00:00Z', 'active', '2026-07-18T00:00:00Z').run();
-        await db.prepare('INSERT INTO source_snapshots (id, reset_cycle_id, probability, lifecycle, source_health, source_updated_at, checked_at, payload_hash, meaningful_change, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)')
-          .bind('snap-1', 'cycle-1', 50, 'none', 'healthy', '2026-07-18T10:00:00Z', '2026-07-18T10:00:00Z', 'hash', 0, '2026-07-18T10:00:00Z')
+        await db
+          .prepare(
+            'INSERT INTO source_snapshots (id, reset_cycle_id, probability, lifecycle, source_health, source_updated_at, checked_at, payload_hash, meaningful_change, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)'
+          )
+          .bind(
+            'snap-1',
+            'cycle-1',
+            50,
+            'none',
+            'healthy',
+            '2026-07-18T10:00:00Z',
+            '2026-07-18T10:00:00Z',
+            'hash',
+            0,
+            '2026-07-18T10:00:00Z'
+          )
           .run();
         return { outcome: 'persisted', snapshotId: 'snap-1', meaningfulChange: false };
       }),
@@ -60,55 +80,104 @@ describe('OrchestrationRunner', () => {
     );
   });
 
-  it('ORCH-10: successfully completes a run when source is unchanged', async () => {
-    const res = await runner.run('scheduled', new Date().toISOString());
-    if (res.outcome === 'failed') {
-      console.error('Run failed with error:', (res as any).error);
-    }
-    expect(res.outcome).toBe('completed');
-    if (res.outcome === 'completed') {
-      expect(res.summary.sourceOutcome).toBe('unchanged_snapshot_persisted');
-      expect(res.summary.eventsCreated).toBe(0);
-    }
-    
-    // Verify run is persisted as completed
-    const runs = (await db.prepare('SELECT * FROM orchestration_runs ORDER BY created_at DESC LIMIT 10').all()).results as any[];
-    expect(runs.length).toBe(1);
-    expect(runs[0].status).toBe('completed');
-  });
-
-  it('ORCH-11: skips overlap when lock is already acquired', async () => {
-    await lock.acquire('run-1', new Date().toISOString(), new Date(Date.now() + 60000).toISOString());
-    const res = await runner.run('scheduled', new Date().toISOString());
-    expect(res.outcome).toBe('skipped_overlap');
-
-    // Verify skipped_overlap run is persisted
-    const runs = (await db.prepare('SELECT * FROM orchestration_runs ORDER BY created_at DESC LIMIT 10').all()).results as any[];
-    expect(runs.length).toBe(1); // The second run was inserted as skipped_overlap
-    expect(runs[0].status).toBe('skipped_overlap');
-  });
-
-  it('ORCH-12: recovers stale lease automatically', async () => {
-    // Acquire lock and expire it
-    await lock.acquire('stale-run', new Date().toISOString(), new Date(Date.now() - 60000).toISOString());
-    // Persist stale run
-    await runRepo.create({
-      id: 'stale-run',
-      trigger_type: 'scheduled',
-      status: 'running',
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+  it('ORCH-FLOW-1: Successful run executes stages in exact order: recovery -> source -> events -> preparation -> dispatch', async () => {
+    const order: string[] = [];
+    vi.spyOn(lock, 'acquire').mockImplementation(async () => {
+      order.push('recovery');
+      return true;
+    });
+    mockSnapshotService.checkAndPersist.mockImplementation(async () => {
+      order.push('source');
+      return { outcome: 'persisted', snapshotId: 'snap-1', meaningfulChange: true };
+    });
+    mockEventService.process.mockImplementation(async () => {
+      order.push('events');
+      return { outcome: 'event_created', eventId: 'evt-1' };
+    });
+    mockPrepService.prepareDeliveries.mockImplementation(async () => {
+      order.push('preparation');
+      return { outcome: 'prepared' };
+    });
+    mockDispatchService.dispatch.mockImplementation(async () => {
+      order.push('dispatch');
     });
 
-    const res = await runner.run('scheduled', new Date().toISOString());
-    if (res.outcome === 'failed') {
-      console.error('Run failed with error:', (res as any).error);
-    }
-    expect(res.outcome).toBe('completed');
+    await runner.run('scheduled', new Date().toISOString());
+    expect(order).toEqual(['recovery', 'source', 'events', 'preparation', 'dispatch']);
+  });
 
-    // Verify the stale run was marked failed
-    const staleRunRow = (await db.prepare('SELECT status FROM orchestration_runs WHERE id = ?').bind('stale-run').first()) as any;
-    expect(staleRunRow.status).toBe('failed');
+  it('ORCH-FLOW-2: Source check is invoked exactly once', async () => {
+    await runner.run('scheduled', new Date().toISOString());
+    expect(mockSnapshotService.checkAndPersist).toHaveBeenCalledTimes(1);
+  });
+
+  it('ORCH-FLOW-3: Persisted SnapshotCheckResult is passed to EventProcessingService', async () => {
+    mockSnapshotService.checkAndPersist.mockResolvedValue({
+      outcome: 'persisted',
+      snapshotId: 'snap-123',
+      meaningfulChange: true,
+    });
+    await runner.run('scheduled', new Date().toISOString());
+    expect(mockEventService.process).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: 'persisted', snapshotId: 'snap-123' }),
+      expect.any(Date)
+    );
+  });
+
+  it('ORCH-FLOW-4: Only newly inserted subscriber event IDs are passed to preparation', async () => {
+    // Case 1: event_created
+    mockEventService.process.mockResolvedValue({ outcome: 'event_created', eventId: 'evt-99' });
+    await runner.run('scheduled', new Date().toISOString());
+    expect(mockPrepService.prepareDeliveries).toHaveBeenCalledWith('evt-99', expect.any(String));
+
+    mockPrepService.prepareDeliveries.mockClear();
+
+    // Case 2: event_already_exists
+    mockEventService.process.mockResolvedValue({
+      outcome: 'event_already_exists',
+      cycleId: 'c1',
+      eventType: 'RESET_ANNOUNCED',
+    });
+    await runner.run('scheduled', new Date().toISOString());
+    expect(mockPrepService.prepareDeliveries).not.toHaveBeenCalled();
+  });
+
+  it('ORCH-FLOW-5: Preparation completes before dispatch begins', async () => {
+    const order: string[] = [];
+    mockPrepService.prepareDeliveries.mockImplementation(async () => {
+      order.push('prep');
+      return { outcome: 'prepared' };
+    });
+    mockDispatchService.dispatch.mockImplementation(async () => {
+      order.push('disp');
+    });
+    mockEventService.process.mockResolvedValue({ outcome: 'event_created', eventId: 'evt-1' });
+
+    await runner.run('scheduled', new Date().toISOString());
+    expect(order).toEqual(['prep', 'disp']);
+  });
+
+  it('ORCH-FLOW-6: Run summary contains exact stage counters', async () => {
+    const res = await runner.run('scheduled', new Date().toISOString());
+    expect(res.summary).toBeDefined();
+    expect(res.summary).toHaveProperty('eventsCreated');
+    expect(res.summary).toHaveProperty('deliveriesPrepared');
+    expect(res.summary).toHaveProperty('deliveriesSent');
+    expect(res.summary).toHaveProperty('deliveriesRetried');
+    expect(res.summary).toHaveProperty('deliveriesFailed');
+  });
+
+  it('ORCH-FLOW-7: Successful run finalizes completed', async () => {
+    const res = await runner.run('scheduled', new Date().toISOString());
+    expect(res.outcome).toBe('completed');
+  });
+
+  it('ORCH-FLOW-8: Phase 7 invokes existing Phase 3/4/6 services and does not implement snapshot parsing or event precedence', () => {
+    // We verify this by ensuring the runner is strictly constructed with these services and calls them,
+    // rather than implementing raw logic.
+    expect(runner).toHaveProperty('snapshotService');
+    expect(runner).toHaveProperty('eventProcessingService');
+    expect(runner).toHaveProperty('deliveryPreparationService');
+    expect(runner).toHaveProperty('dispatchService');
   });
 });

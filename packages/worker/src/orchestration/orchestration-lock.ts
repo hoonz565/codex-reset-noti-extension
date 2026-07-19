@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { OrchestrationLockRepository } from '../db/repositories/OrchestrationLockRepository';
 import { OrchestrationRunRepository } from '../db/repositories/OrchestrationRunRepository';
 
@@ -10,7 +11,7 @@ export class OrchestrationLock {
 
   async acquire(runId: string, nowIso: string, expiresAtIso: string): Promise<boolean> {
     const res = await this.lockRepo.acquire(this.lockName, runId, nowIso, expiresAtIso);
-    
+
     if (res.outcome === 'acquired') {
       if (res.previousOwnerId) {
         // We took over an expired lock. Stale run repair!
@@ -18,7 +19,7 @@ export class OrchestrationLock {
       }
       return true;
     }
-    
+
     if (res.outcome === 'already_running') {
       return false;
     }

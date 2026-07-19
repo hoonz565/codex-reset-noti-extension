@@ -22,7 +22,9 @@ export class OrchestrationRunner {
 
   async run(triggerType: TriggerType, nowIso: string): Promise<OrchestrationRunResult> {
     const runId = crypto.randomUUID();
-    const expiresAtIso = new Date(new Date(nowIso).getTime() + this.config.leaseDurationMs).toISOString();
+    const expiresAtIso = new Date(
+      new Date(nowIso).getTime() + this.config.leaseDurationMs
+    ).toISOString();
 
     const summaryBuilder = new OrchestrationSummaryBuilder(runId, triggerType, nowIso);
     let lockAcquired = false;
@@ -50,7 +52,6 @@ export class OrchestrationRunner {
       if (!runPersisted) {
         throw new Error('Failed to persist running orchestration row');
       }
-
     } catch (e) {
       if (lockAcquired) {
         await this.lock.release(runId);
@@ -64,18 +65,24 @@ export class OrchestrationRunner {
 
     try {
       const now = new Date(nowIso);
-      
+
       // 3. Source Check
       let snapshotResult: SnapshotCheckResult;
       try {
         snapshotResult = await this.snapshotService.checkAndPersist(now);
       } catch (e) {
         // Critical source fetch DB error
-        throw new Error('Failed to persist snapshot or unrelated DB error during source check: ' + (e as Error).message);
+        throw new Error(
+          'Failed to persist snapshot or unrelated DB error during source check: ' +
+            (e as Error).message
+        );
       }
 
       // If it failed critically inside checkAndPersist (e.g. failed to persist DB), it returns { outcome: 'failed' }
-      if (snapshotResult.outcome === 'failed' || snapshotResult.outcome === 'bootstrap_prerequisite_missing') {
+      if (
+        snapshotResult.outcome === 'failed' ||
+        snapshotResult.outcome === 'bootstrap_prerequisite_missing'
+      ) {
         throw new Error('Failed to persist snapshot or bootstrap missing');
       }
 
@@ -84,7 +91,9 @@ export class OrchestrationRunner {
 
       if (snapshotResult.outcome === 'persisted') {
         snapshotId = snapshotResult.snapshotId;
-        mappedSourceOutcome = snapshotResult.meaningfulChange ? 'fresh_snapshot_persisted' : 'unchanged_snapshot_persisted';
+        mappedSourceOutcome = snapshotResult.meaningfulChange
+          ? 'fresh_snapshot_persisted'
+          : 'unchanged_snapshot_persisted';
       } else if (snapshotResult.outcome === 'persisted_unavailable') {
         snapshotId = snapshotResult.snapshotId;
         mappedSourceOutcome = 'unavailable_snapshot_persisted';
@@ -94,7 +103,7 @@ export class OrchestrationRunner {
 
       // If the snapshot is fresh/unchanged, we process events. If unavailable, we skip events/prep.
       const isUnavailableOrUntrusted = mappedSourceOutcome === 'unavailable_snapshot_persisted';
-      
+
       if (isUnavailableOrUntrusted) {
         errorCodes.push('SOURCE_UNAVAILABLE');
       } else {
@@ -108,11 +117,14 @@ export class OrchestrationRunner {
         if (eventRes.outcome === 'event_created') {
           summaryBuilder.addEventCreated();
           // 5. Delivery Preparation
-          // prepareDeliveries does not return a count in DeliveryPreparationResult. It returns `prepared` or `failed`. 
-          // Wait, actually I don't know if it returns `count`. 
+          // prepareDeliveries does not return a count in DeliveryPreparationResult. It returns `prepared` or `failed`.
+          // Wait, actually I don't know if it returns `count`.
           // I will just add 0 since I can't read the count easily, or assume it prepared *something* since it was an event.
           // Let's assume it doesn't return count.
-          const prepRes = await this.deliveryPreparationService.prepareDeliveries(eventRes.eventId, nowIso);
+          const prepRes = await this.deliveryPreparationService.prepareDeliveries(
+            eventRes.eventId,
+            nowIso
+          );
           if (prepRes.outcome === 'prepared') {
             summaryBuilder.addDeliveriesPrepared(0); // Cannot easily tell without changing prep service. It's fine for now, or maybe the DB will trigger it.
           } else if (prepRes.outcome === 'failed') {
@@ -164,16 +176,15 @@ export class OrchestrationRunner {
           outcome: 'completed_with_errors',
           runId,
           summary: summaryBuilder.getSummary(),
-          errorCodes
+          errorCodes,
         };
       } else {
         return {
           outcome: 'completed',
           runId,
-          summary: summaryBuilder.getSummary()
+          summary: summaryBuilder.getSummary(),
         };
       }
-
     } catch (e) {
       // Critical error path
       const finishIso = new Date().toISOString();
@@ -186,7 +197,7 @@ export class OrchestrationRunner {
         error_code: 'CRITICAL_FAILURE',
         updated_at: finishIso,
       });
-      
+
       // Release lock
       await this.lock.release(runId);
 
@@ -194,7 +205,12 @@ export class OrchestrationRunner {
     }
   }
 
-  private async persistSkippedOverlap(runId: string, triggerType: TriggerType, startedAt: string, finishedAt: string) {
+  private async persistSkippedOverlap(
+    runId: string,
+    triggerType: TriggerType,
+    startedAt: string,
+    finishedAt: string
+  ) {
     const res = await this.runRepo.create({
       id: runId,
       trigger_type: triggerType,

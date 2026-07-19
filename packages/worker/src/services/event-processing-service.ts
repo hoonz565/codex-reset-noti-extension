@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SnapshotCheckResult } from './snapshot-service';
 import { DbTransactions } from '../db/transactions';
 import { ResetCycleRepository } from '../db/repositories/ResetCycleRepository';
