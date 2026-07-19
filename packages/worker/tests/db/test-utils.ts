@@ -4,6 +4,7 @@ import m2 from '../../migrations/0002_add_reset_cycle_transition_token.sql?raw';
 import m3 from '../../migrations/0003_subscription_tokens.sql?raw';
 import m4 from '../../migrations/0004_delivery_processing.sql?raw';
 import m5 from '../../migrations/0005_delivery_state_correction.sql?raw';
+import m6 from '../../migrations/0006_orchestration.sql?raw';
 
 export async function setupTestDb() {
   const db = env.DB as D1Database;
@@ -18,6 +19,8 @@ export async function setupTestDb() {
     DROP TABLE IF EXISTS reset_cycles;
     DROP TABLE IF EXISTS subscription_tokens;
     DROP TABLE IF EXISTS subscribers;
+    DROP TABLE IF EXISTS orchestration_runs;
+    DROP TABLE IF EXISTS orchestration_locks;
     DROP TABLE IF EXISTS d1_migrations;
   `);
 
@@ -40,6 +43,7 @@ export async function setupTestDb() {
   await applyMigration(m3);
   await applyMigration(m4);
   await applyMigration(m5);
+  await applyMigration(m6);
 
   return db;
 }
