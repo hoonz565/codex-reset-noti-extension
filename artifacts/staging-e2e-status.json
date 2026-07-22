@@ -1,0 +1,36 @@
+{
+  "runAt": "2026-07-22T09:29:04.731Z",
+  "stagingUrl": "https://codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+  "stagingOrigin": "chrome-extension://staging-extension-id-placeholder",
+  "corsNote": "Contract verification only — real Chrome extension origin NOT VERIFIED. Blocking input: actual staging extension ID.",
+  "tests": [
+    {
+      "name": "GET /api/status",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "OPTIONS /api/status",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "GET /api/status forbidden origin",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "POST /api/status",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4
+  }
+}

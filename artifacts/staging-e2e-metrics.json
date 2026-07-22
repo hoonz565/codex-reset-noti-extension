@@ -1,0 +1,59 @@
+{
+  "runAt": "2026-07-22T09:29:04.885Z",
+  "stagingUrl": "https://codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+  "bearerNote": "Bearer token read from STAGING_ADMIN_TOKEN env var. Value never recorded.",
+  "tests": [
+    {
+      "name": "Missing bearer → HTTP 401",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "Invalid bearer → HTTP 401",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "Origin only, no bearer → HTTP 401",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "Valid bearer → HTTP 200",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "Unsupported window → HTTP 400",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "window=1h → HTTP 200",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "window=24h → HTTP 200",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    },
+    {
+      "name": "window=7d → HTTP 200",
+      "result": "FAIL",
+      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
+      "evidence": {}
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 8
+  }
+}
