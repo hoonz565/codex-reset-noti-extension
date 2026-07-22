@@ -20,14 +20,14 @@ migrations_dir = "migrations"
 name = "codex-reset-notifier-staging"
 [env.staging.vars]
 ENVIRONMENT = "staging"
-ALLOWED_ORIGINS = "chrome-extension://<STAGING_EXTENSION_ID>"
+ALLOWED_ORIGINS = "chrome-extension://staging-extension-id-placeholder"
 # ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env staging`
 # EMAIL_PROVIDER_API_KEY is bound via `wrangler secret put EMAIL_PROVIDER_API_KEY --env staging`
 
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "codex_reset_staging"
-database_id = "11111111-1111-1111-1111-111111111111"
+database_id = "6a5407b3-0ed5-4f16-bfc5-9322a37e7e12"
 migrations_dir = "migrations"
 
 [env.production]

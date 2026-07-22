@@ -3,7 +3,6 @@ import { defaultOrchestrationConfig } from './orchestration/orchestration-config
 import { handleAdminRunRequest } from './http/admin-routes';
 import { ForceRunService } from './services/force-run-service';
 import { SourceForecastClient } from './source/forecast-client';
-import { MockEmailProvider } from './email/providers/mock-email-provider';
 import { EmailTemplateRenderer } from './email/email-template-renderer';
 import { ScheduledRunService } from './services/scheduled-run-service';
 import { createStatusRoutes } from './http/status-routes';
@@ -11,12 +10,17 @@ import { createStatusReadService } from './status/status-factory';
 import { createMetricsRoutes } from './http/metrics-routes';
 import { createMetricsReadService } from './metrics/metrics-factory';
 
+import { createEmailProvider } from './email/providers/email-provider-factory';
+
 export interface Env {
   ALLOWED_ORIGINS: string;
   DB: D1Database;
   RATE_LIMIT_SECRET: string;
   ADMIN_API_TOKEN?: string;
   ADMIN_SECRET?: string;
+  ENVIRONMENT?: string;
+  MAILGUN_API_KEY?: string;
+  MAILGUN_DOMAIN?: string;
 }
 
 const handleCors = (request: Request, env: Env) => {
@@ -101,7 +105,11 @@ export default {
         const sourceClient = new SourceForecastClient({
           url: 'https://willcodexquotareset.com/api/forecast',
         });
-        const emailProvider = new MockEmailProvider();
+        const emailProvider = createEmailProvider(
+          env.ENVIRONMENT || 'development',
+          env.MAILGUN_API_KEY,
+          env.MAILGUN_DOMAIN
+        );
         const templateRenderer = new EmailTemplateRenderer('https://management-url.com');
         const runner = createOrchestrationRunner(
           env.DB,
@@ -125,7 +133,11 @@ export default {
     const sourceClient = new SourceForecastClient({
       url: 'https://willcodexquotareset.com/api/forecast',
     });
-    const emailProvider = new MockEmailProvider();
+    const emailProvider = createEmailProvider(
+      env.ENVIRONMENT || 'development',
+      env.MAILGUN_API_KEY,
+      env.MAILGUN_DOMAIN
+    );
     const templateRenderer = new EmailTemplateRenderer('https://management-url.com');
     const runner = createOrchestrationRunner(
       env.DB,

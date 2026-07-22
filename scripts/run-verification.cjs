@@ -4,6 +4,11 @@ const fs = require('fs');
 const path = require('path');
 
 const baseDir = path.resolve(__dirname, '..');
+const artifactsDir = path.join(baseDir, 'artifacts');
+
+if (!fs.existsSync(artifactsDir)) {
+  fs.mkdirSync(artifactsDir, { recursive: true });
+}
 
 function runCommand(command, env = process.env) {
   try {
@@ -15,7 +20,34 @@ function runCommand(command, env = process.env) {
   }
 }
 
-// 1. Remove old verification JSON files
+const runId = 'run-' + Date.now();
+const startedAt = new Date().toISOString();
+
+// 1. Verify a9c8b08
+let headCommit = '';
+try {
+  headCommit = execSync('git rev-parse HEAD', { cwd: baseDir, encoding: 'utf8' }).trim();
+  execSync('git merge-base --is-ancestor a9c8b08 HEAD', { cwd: baseDir });
+} catch (e) {
+  console.error('Commit a9c8b08 is not an ancestor of HEAD or does not exist.', e);
+  process.exit(1);
+}
+
+try {
+  const oldReport = execSync('git show a9c8b08:phase-8-report.md', {
+    cwd: baseDir,
+    encoding: 'utf8',
+  });
+  if (!oldReport.includes('656')) {
+    console.error('Commit a9c8b08 phase-8-report.md does not contain the 656-test baseline.');
+    process.exit(1);
+  }
+} catch (e) {
+  console.error('Could not verify phase-8-report.md in a9c8b08.', e);
+  process.exit(1);
+}
+
+// 2. Remove old verification JSON files
 const jsonPaths = [
   'packages/shared/verification-results.json',
   'packages/extension/verification-results.json',
@@ -30,58 +62,43 @@ for (const p of jsonPaths) {
   }
 }
 
-// 2. Resolve Dependency Status
+// 3. Resolve Dependency Status
 let dependencyGraphChanged = false;
 let packageMetadataChanged = false;
 
 try {
-  const diffOutput = execSync('git diff --name-only a9c8b08', {
+  const diffOutput = execSync('git diff --name-only a9c8b08...HEAD', {
     cwd: baseDir,
     encoding: 'utf8',
   }).trim();
   const diffLines = diffOutput.split('\n').filter(Boolean);
 
-  for (const line of diffLines) {
-    if (line.includes('package.json') || line.includes('package-lock.json')) {
-      packageMetadataChanged = true;
-      break;
-    }
+  if (diffLines.some((l) => l.includes('package.json') || l.includes('package-lock.json'))) {
+    packageMetadataChanged = true;
   }
 
-  // Determine graph change vs just metadata
-  // We'll consider package-lock.json changes or dependencies/devDependencies changes as a graph change.
-  // We can just diff the contents.
   if (packageMetadataChanged) {
     const patchOutput = execSync(
-      'git diff a9c8b08 package.json package-lock.json packages/*/package.json',
+      'git diff a9c8b08...HEAD package.json package-lock.json packages/*/package.json',
       { cwd: baseDir, encoding: 'utf8' }
     );
     if (
       patchOutput.includes('+  "dependencies"') ||
       patchOutput.includes('+  "devDependencies"') ||
       patchOutput.includes('package-lock.json') ||
-      patchOutput.includes('+    "')
+      diffLines.includes('package-lock.json') ||
+      patchOutput.includes('-  "dependencies"') ||
+      patchOutput.includes('-  "devDependencies"')
     ) {
-      // simplified: if it adds anything that looks like a dependency
-      // actually, let's just do a rough check. The simplest is package-lock.json modification = graph change.
-      if (diffLines.includes('package-lock.json')) {
-        dependencyGraphChanged = true;
-      } else {
-        // If only package.json changed, did dependencies change?
-        if (patchOutput.includes('dependencies') || patchOutput.includes('devDependencies')) {
-          dependencyGraphChanged = true;
-        }
-      }
+      dependencyGraphChanged = true;
     }
   }
 } catch (e) {
   console.error('Error checking git diff', e);
 }
 
-const npmCiRequired = dependencyGraphChanged;
 let npmCiExitCode = null;
-
-if (npmCiRequired) {
+if (dependencyGraphChanged) {
   console.log('Dependency graph changed. Running npm ci...');
   npmCiExitCode = runCommand('npm ci');
   if (npmCiExitCode !== 0) {
@@ -90,72 +107,166 @@ if (npmCiRequired) {
   }
 }
 
-// Write the dep status artifact
 const depStatus = {
+  runId,
+  headCommit,
   packageMetadataChanged: packageMetadataChanged ? 'YES' : 'NO',
   dependencyGraphChanged: dependencyGraphChanged ? 'YES' : 'NO',
-  npmCiRequired: npmCiRequired ? 'YES' : 'NO',
+  npmCiRequired: dependencyGraphChanged ? 'YES' : 'NO',
   npmCiExitCode,
 };
 fs.writeFileSync(
-  path.join(baseDir, 'dependency-status.json'),
+  path.join(artifactsDir, 'dependency-status.json'),
   JSON.stringify(depStatus, null, 2) + '\n'
 );
-runCommand('npx prettier --write dependency-status.json');
 
-// 3. Verify
-const commands = [
-  'npm run format:check',
-  'npm run lint',
-  'npm run typecheck',
-  'npm run test',
-  'npm run build',
-];
+// 4. Verify
+const { validateWorkspaceExecution } = require('./verification-validator.cjs');
+
+const workspaces = ['packages/shared', 'packages/worker', 'packages/extension'];
+for (const ws of workspaces) {
+  const jsonPath = path.join(baseDir, ws, 'verification-results.json');
+  if (fs.existsSync(jsonPath)) {
+    fs.unlinkSync(jsonPath);
+  }
+}
+
+const commands = ['npm run format:check', 'npm run lint', 'npm run typecheck', 'npm run build'];
+
+const commandResults = { runId, headCommit, results: {} };
 
 for (const cmd of commands) {
   const code = runCommand(cmd);
+  commandResults.results[cmd] = code;
   if (code !== 0) {
     console.error(`${cmd} failed with exit code ${code}`);
+    fs.writeFileSync(
+      path.join(artifactsDir, 'command-results.json'),
+      JSON.stringify(commandResults, null, 2) + '\n'
+    );
     process.exit(code);
   }
 }
 
-// 4. Preflight
+for (const ws of workspaces) {
+  console.log(`Running tests for ${ws}...`);
+  const wsPath = path.join(baseDir, ws);
+  const jsonPath = path.join(wsPath, 'verification-results.json');
+  const testStart = Date.now();
+  let exitCode = 0;
+  let stdout = '';
+  let stderr = '';
+
+  try {
+    const out = execSync(
+      `npx vitest run --reporter default --reporter json --outputFile verification-results.json`,
+      {
+        cwd: wsPath,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }
+    );
+    stdout = out;
+  } catch (e) {
+    exitCode = e.status || 1;
+    stdout = e.stdout || '';
+    stderr = e.stderr || '';
+  }
+
+  const valResult = validateWorkspaceExecution({
+    exitCode,
+    jsonPath,
+    startedAt: testStart,
+    stdout,
+    stderr,
+  });
+
+  if (!valResult.valid) {
+    console.error(`[FAILURE] Workspace ${ws} failed verification: ${valResult.reason}`);
+    commandResults.results[`test:${ws}`] = {
+      command: `npm run test --workspace ${ws}`,
+      exitCode,
+      numPassedTests: 0,
+      numFailedTests: 1,
+      unexpectedShutdown:
+        stdout.includes('Worker exited unexpectedly') ||
+        stderr.includes('Worker exited unexpectedly'),
+      unhandledErrors: 1,
+    };
+    fs.writeFileSync(
+      path.join(artifactsDir, 'command-results.json'),
+      JSON.stringify(commandResults, null, 2) + '\n'
+    );
+    process.exit(exitCode || 1);
+  }
+
+  console.log(`[PASS] Workspace ${ws} passed verification with ${valResult.numPassedTests} tests.`);
+  commandResults.results[`test:${ws}`] = {
+    command: `npm run test --workspace ${ws}`,
+    exitCode: 0,
+    numPassedTests: valResult.numPassedTests,
+    numFailedTests: 0,
+    unexpectedShutdown: false,
+    unhandledErrors: 0,
+  };
+}
+
+fs.writeFileSync(
+  path.join(artifactsDir, 'command-results.json'),
+  JSON.stringify(commandResults, null, 2) + '\n'
+);
+
+// 5. Preflight
 console.log('Running release:preflight:staging');
 let preflightExitCode = 0;
 let preflightDiagnostics = '';
 try {
-  const out = execSync('npm run release:preflight:staging', { cwd: baseDir, encoding: 'utf8' });
+  const out = execSync('npm run release:preflight:staging', {
+    cwd: baseDir,
+    encoding: 'utf8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
   preflightDiagnostics = out;
 } catch (e) {
   preflightExitCode = e.status || 1;
   preflightDiagnostics = (e.stdout || '') + '\n' + (e.stderr || '');
 }
 
-// Clean up diagnostics text
 preflightDiagnostics = preflightDiagnostics.replace(/\r/g, '').trim();
 
 const preflightResult = {
+  runId,
+  headCommit,
   command: 'npm run release:preflight:staging',
   exitCode: preflightExitCode,
   classification:
     preflightExitCode === 2
-      ? 'EXPECTED CONFIGURATION INCOMPLETE'
+      ? 'EXPECTED_CONFIGURATION_INCOMPLETE'
       : preflightExitCode === 0
         ? 'SUCCESS'
-        : 'UNKNOWN ERROR',
+        : 'UNKNOWN_ERROR',
   diagnostics: preflightDiagnostics,
   mutationsPerformed: false,
 };
 
 fs.writeFileSync(
-  path.join(baseDir, 'staging-preflight-result.json'),
+  path.join(artifactsDir, 'staging-preflight-result.json'),
   JSON.stringify(preflightResult, null, 2) + '\n'
 );
-runCommand('npx prettier --write staging-preflight-result.json');
-console.log('Wrote staging-preflight-result.json');
 
-// 5. Generate Report
+const verificationRun = {
+  runId,
+  headCommit,
+  startedAt,
+  completedAt: new Date().toISOString(),
+};
+
+fs.writeFileSync(
+  path.join(artifactsDir, 'verification-run.json'),
+  JSON.stringify(verificationRun, null, 2) + '\n'
+);
+
+// 6. Generate Report
 console.log('Generating report...');
 const reportCode = runCommand('node scripts/generate-release-report.cjs');
 if (reportCode !== 0) {
@@ -163,4 +274,20 @@ if (reportCode !== 0) {
   process.exit(reportCode);
 }
 
-console.log('Verification Sequence Complete.');
+// Gate B: staging is fully configured; preflight must succeed (exit 0).
+if (preflightResult.classification === 'SUCCESS') {
+  console.log('Verification Sequence Complete. Staging preflight passed.');
+  process.exit(0);
+} else if (preflightResult.classification === 'EXPECTED_CONFIGURATION_INCOMPLETE') {
+  // Staging placeholder values remain — Gate B cannot be signed off.
+  console.error(
+    'Preflight returned EXPECTED_CONFIGURATION_INCOMPLETE (exit 2). ' +
+      'Staging must be fully configured before Gate B completes.'
+  );
+  process.exit(1);
+} else {
+  console.error(
+    `Preflight failed unexpectedly (exit ${preflightExitCode}): ${preflightDiagnostics}`
+  );
+  process.exit(1);
+}

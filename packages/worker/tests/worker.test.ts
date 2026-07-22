@@ -26,7 +26,7 @@ describe('Worker API Spike', () => {
 
   afterEach(async () => {
     if (backgroundPromises.length > 0) {
-      await Promise.allSettled(backgroundPromises);
+      await Promise.all(backgroundPromises);
       backgroundPromises = [];
     }
   });

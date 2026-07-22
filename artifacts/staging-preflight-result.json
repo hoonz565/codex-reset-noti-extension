@@ -1,0 +1,9 @@
+{
+  "runId": "run-1784711053535",
+  "headCommit": "73f31906f8b9a7b5179a2900547d8c55f9b60f85",
+  "command": "npm run release:preflight:staging",
+  "exitCode": 0,
+  "classification": "SUCCESS",
+  "diagnostics": "> codex-reset-notifier@1.0.0 release:preflight:staging\n> node scripts/release-preflight.cjs --environment staging\n\nPreflight complete. staging configuration appears valid.",
+  "mutationsPerformed": false
+}

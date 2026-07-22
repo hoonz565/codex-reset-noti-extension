@@ -1,0 +1,333 @@
+{
+  "numTotalTestSuites": 12,
+  "numPassedTestSuites": 12,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 33,
+  "numPassedTests": 33,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1784711073830,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "events types"],
+          "fullName": " events types SubscriberEventType contains exactly PROBABILITY_REACHED_70 and RESET_ANNOUNCED",
+          "status": "passed",
+          "title": "SubscriberEventType contains exactly PROBABILITY_REACHED_70 and RESET_ANNOUNCED",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "events types"],
+          "fullName": " events types RESET_COMPLETED is operational, not subscriber-facing",
+          "status": "passed",
+          "title": "RESET_COMPLETED is operational, not subscriber-facing",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "events types"],
+          "fullName": " events types Threshold payload preserves threshold=70 and currentProbability=95",
+          "status": "passed",
+          "title": "Threshold payload preserves threshold=70 and currentProbability=95",
+          "duration": 0,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074521,
+      "endTime": 1784711074523,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/event-types.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "AdminMetricsResponseSchema"],
+          "fullName": " AdminMetricsResponseSchema validates a complete response correctly",
+          "status": "passed",
+          "title": "validates a complete response correctly",
+          "duration": 4,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074563,
+      "endTime": 1784711074567,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/metrics-schema.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "PublicResetStatusSchema"],
+          "fullName": " PublicResetStatusSchema validates empty state correctly",
+          "status": "passed",
+          "title": "validates empty state correctly",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "PublicResetStatusSchema"],
+          "fullName": " PublicResetStatusSchema validates fresh state correctly",
+          "status": "passed",
+          "title": "validates fresh state correctly",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "PublicResetStatusSchema"],
+          "fullName": " PublicResetStatusSchema validates stale state correctly",
+          "status": "passed",
+          "title": "validates stale state correctly",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "PublicResetStatusSchema"],
+          "fullName": " PublicResetStatusSchema validates unavailable state correctly",
+          "status": "passed",
+          "title": "validates unavailable state correctly",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "PublicResetStatusSchema"],
+          "fullName": " PublicResetStatusSchema rejects invalid combinations",
+          "status": "passed",
+          "title": "rejects invalid combinations",
+          "duration": 2,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074555,
+      "endTime": 1784711074561,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/status-schema-phase8.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema Valid persisted CodexResetStatus passes",
+          "status": "passed",
+          "title": "Valid persisted CodexResetStatus passes",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema Persisted status with checkedAt=null fails",
+          "status": "passed",
+          "title": "Persisted status with checkedAt=null fails",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema Cold-start PublicStatusResponse with status=null passes",
+          "status": "passed",
+          "title": "Cold-start PublicStatusResponse with status=null passes",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema Unknown public status fields are handled according to strictness policy",
+          "status": "passed",
+          "title": "Unknown public status fields are handled according to strictness policy",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema Raw source response permits additional upstream fields",
+          "status": "passed",
+          "title": "Raw source response permits additional upstream fields",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema probability below 0 is rejected",
+          "status": "passed",
+          "title": "probability below 0 is rejected",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema probability above 100 is rejected",
+          "status": "passed",
+          "title": "probability above 100 is rejected",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema NaN or Infinity probability is rejected",
+          "status": "passed",
+          "title": "NaN or Infinity probability is rejected",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema invalid timestamp is rejected",
+          "status": "passed",
+          "title": "invalid timestamp is rejected",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "status.schema"],
+          "fullName": " status.schema probability=100 does not infer announced (passes validation with lifecycle=none)",
+          "status": "passed",
+          "title": "probability=100 does not infer announced (passes validation with lifecycle=none)",
+          "duration": 1,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074572,
+      "endTime": 1784711074584,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/status-schema.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "subscription.schema"],
+          "fullName": " subscription.schema Valid two-alert preferences pass",
+          "status": "passed",
+          "title": "Valid two-alert preferences pass",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "subscription.schema"],
+          "fullName": " subscription.schema Both alert preferences false fail",
+          "status": "passed",
+          "title": "Both alert preferences false fail",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "subscription.schema"],
+          "fullName": " subscription.schema probability90 is rejected",
+          "status": "passed",
+          "title": "probability90 is rejected",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "subscription.schema"],
+          "fullName": " subscription.schema resetCompleted is rejected",
+          "status": "passed",
+          "title": "resetCompleted is rejected",
+          "duration": 0,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "subscription.schema"],
+          "fullName": " subscription.schema createSubscriptionRequestSchema validates email and preferences",
+          "status": "passed",
+          "title": "createSubscriptionRequestSchema validates email and preferences",
+          "duration": 2,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074575,
+      "endTime": 1784711074583,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/subscription-schema.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects exit code 1 with all tests recorded PASS",
+          "status": "passed",
+          "title": "rejects exit code 1 with all tests recorded PASS",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects exit code 137 or forced termination",
+          "status": "passed",
+          "title": "rejects exit code 137 or forced termination",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects unexpected Worker shutdown text in stdout or stderr",
+          "status": "passed",
+          "title": "rejects unexpected Worker shutdown text in stdout or stderr",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects unhandled rejection with numFailedTests 0",
+          "status": "passed",
+          "title": "rejects unhandled rejection with numFailedTests 0",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects missing JSON file",
+          "status": "passed",
+          "title": "rejects missing JSON file",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects stale JSON file",
+          "status": "passed",
+          "title": "rejects stale JSON file",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects malformed JSON content",
+          "status": "passed",
+          "title": "rejects malformed JSON content",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation rejects inconsistent passed-test totals",
+          "status": "passed",
+          "title": "rejects inconsistent passed-test totals",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
+          "fullName": " Orchestrator Failure Integrity Validation accepts valid fixture when exit code is 0 and JSON verification passes",
+          "status": "passed",
+          "title": "accepts valid fixture when exit code is 0 and JSON verification passes",
+          "duration": 6,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1784711074518,
+      "endTime": 1784711074552,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/release/orchestrator-verification.test.ts"
+    }
+  ]
+}

@@ -52,7 +52,7 @@ describe('Orchestration Phase Boundaries', () => {
     const res = await worker.fetch(req, {} as any, ctx);
     expect(res.status).toBe(404);
     if (backgroundPromises.length > 0) {
-      await Promise.allSettled(backgroundPromises);
+      await Promise.all(backgroundPromises);
     }
   });
 

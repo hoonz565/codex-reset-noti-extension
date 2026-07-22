@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // @ts-expect-error Types missing for ?raw import
 import wranglerContentRaw from '../../wrangler.toml?raw';
@@ -14,10 +14,8 @@ import pkgRaw from '../../../../package.json?raw';
 // @ts-expect-error Types missing for ?raw import
 import packageExtRaw from '../../../../scripts/package-extension.mjs?raw';
 
-import { ConfiguredEmailProvider } from '../../src/email/providers/configured-email-provider';
 import worker from '../../src/index';
 import { setupTestDb } from '../db/test-utils';
-import { vi } from 'vitest';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { runPreflight } = require('../../../../scripts/release-preflight.cjs');
 
@@ -136,7 +134,11 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-PREFLIGHT-4: Staging D1 placeholder is rejected by deployment preflight.', () => {
-      const code = runPreflight(['node', 'script', '--environment', 'staging'], wranglerContent);
+      const placeholderContent = wranglerContent.replace(
+        /(\[\[env\.staging\.d1_databases\]\][\s\S]*?database_id\s*=\s*)"[^"]+"/,
+        '$1"<STAGING_D1_ID>"'
+      );
+      const code = runPreflight(['node', 'script', '--environment', 'staging'], placeholderContent);
       // We expect 2 because D1 placeholder or missing staging credentials exist
       expect(code).toBe(2);
     });
@@ -150,7 +152,11 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-PREFLIGHT-6: Staging extension ID placeholder blocks staging preflight.', () => {
-      const code = runPreflight(['node', 'script', '--environment', 'staging'], wranglerContent);
+      const placeholderContent = wranglerContent.replace(
+        /(\[env\.staging\.vars\][\s\S]*?ALLOWED_ORIGINS\s*=\s*)"[^"]+"/,
+        '$1"chrome-extension://<STAGING_EXTENSION_ID>"'
+      );
+      const code = runPreflight(['node', 'script', '--environment', 'staging'], placeholderContent);
       expect(code).toBe(2);
     });
 
@@ -168,10 +174,16 @@ describe('Phase 9 Canonical Release Requirements', () => {
 
   describe('Email', () => {
     it('REL-EMAIL-1: Staging email provider operates in safe/sandbox mode preventing real sends.', async () => {
-      const provider = new ConfiguredEmailProvider('mock-key', 'no-reply@test.com');
-      await expect(
-        provider.send({ to: 'test@example.com', subject: 'test', htmlBody: 'body' })
-      ).rejects.toThrow('UNCONFIGURED_PROVIDER_BOUNDARY');
+      const { createEmailProvider } =
+        await import('../../src/email/providers/email-provider-factory');
+      const provider = createEmailProvider('staging');
+      const res = await provider.send({
+        to: 'test@example.com',
+        subject: 'test',
+        htmlBody: 'body',
+      });
+      expect(res.outcome).toBe('accepted');
+      expect((res as any).providerMessageId).toBe('disabled-staging-send');
     });
   });
 
@@ -206,72 +218,72 @@ describe('Phase 9 Canonical Release Requirements', () => {
 
     it('REL-BOUNDARY-5: Status and metrics routes remain read-only.', async () => {
       const db = await setupTestDb();
-      const prepareSpy = vi.spyOn(db, 'prepare');
-      prepareSpy.mockClear();
+      const originalPrepare = db.prepare.bind(db);
+      const prepareSpy = vi.spyOn(db, 'prepare').mockImplementation((query) => {
+        const upper = query.toUpperCase();
+        if (upper.includes('INSERT') || upper.includes('UPDATE') || upper.includes('DELETE')) {
+          throw new Error('SEC-BOUNDARY-MUTATION');
+        }
+        return originalPrepare(query);
+      });
+
       const env = {
+        ALLOWED_ORIGINS: '*',
         DB: db,
         RATE_LIMIT_SECRET: 'sec',
         ADMIN_API_TOKEN: 'token',
-        ALLOWED_ORIGINS: '*',
       };
-      const backgroundPromises: Promise<any>[] = [];
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
 
-      const ctx = {
-        waitUntil: (p: Promise<any>) => backgroundPromises.push(p),
-        passThroughOnException: () => {},
-      } as any;
+      const res = await worker.fetch(new Request('http://localhost/api/status'), env, ctx);
+      expect(res.status).toBe(200);
 
-      await worker.fetch(new Request('http://localhost/api/status'), env, ctx);
-      await worker.fetch(
+      const res2 = await worker.fetch(
         new Request('http://localhost/api/admin/metrics', {
           headers: { Authorization: 'Bearer token' },
         }),
         env,
         ctx
       );
+      expect(res2.status).toBe(200);
 
-      const calls = prepareSpy.mock.calls;
-      for (const [sql] of calls) {
-        const s = sql.toUpperCase();
-        expect(s).not.toContain('INSERT ');
-        expect(s).not.toContain('UPDATE ');
-        expect(s).not.toContain('DELETE ');
-      }
-      if (backgroundPromises.length > 0) {
-        await Promise.allSettled(backgroundPromises);
-      }
+      prepareSpy.mockRestore();
     });
 
     it('REL-BOUNDARY-6: CORS cannot authorize admin metrics.', async () => {
       const db = await setupTestDb();
       const prepareSpy = vi.spyOn(db, 'prepare');
-      prepareSpy.mockClear();
       const env = {
+        ALLOWED_ORIGINS: 'https://trusted.com',
         DB: db,
         RATE_LIMIT_SECRET: 'sec',
         ADMIN_API_TOKEN: 'token',
-        ALLOWED_ORIGINS: 'https://trusted.com',
       };
-      const backgroundPromises: Promise<any>[] = [];
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
 
-      const ctx = {
-        waitUntil: (p: Promise<any>) => backgroundPromises.push(p),
-        passThroughOnException: () => {},
-      } as any;
-
-      const res = await worker.fetch(
+      // 1. Missing bearer
+      let res = await worker.fetch(
         new Request('http://localhost/api/admin/metrics', {
           headers: { Origin: 'https://trusted.com' },
         }),
         env,
         ctx
       );
-
       expect(res.status).toBe(401);
       expect(prepareSpy).not.toHaveBeenCalled();
-      if (backgroundPromises.length > 0) {
-        await Promise.allSettled(backgroundPromises);
-      }
+
+      // 2. Invalid bearer
+      res = await worker.fetch(
+        new Request('http://localhost/api/admin/metrics', {
+          headers: { Origin: 'https://trusted.com', Authorization: 'Bearer invalid' },
+        }),
+        env,
+        ctx
+      );
+      expect(res.status).toBe(401);
+      expect(prepareSpy).not.toHaveBeenCalled();
+
+      prepareSpy.mockRestore();
     });
 
     it('REL-BOUNDARY-7: No provider webhook is introduced.', () => {

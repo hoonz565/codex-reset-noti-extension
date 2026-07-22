@@ -38,7 +38,7 @@ describe('Admin Force Run Route', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     if (backgroundPromises.length > 0) {
-      await Promise.allSettled(backgroundPromises);
+      await Promise.all(backgroundPromises);
     }
   });
 

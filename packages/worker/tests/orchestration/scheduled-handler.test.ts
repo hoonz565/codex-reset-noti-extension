@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { ScheduledRunService } from '../../src/services/scheduled-run-service';
 import worker from '../../src/index';
 
 describe('ScheduledRunService', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('ORCH-SCHED-1: Scheduled handler invokes orchestration runner exactly once', async () => {
     const mockRunner = { run: vi.fn().mockResolvedValue({ outcome: 'completed' }) };
     const service = new ScheduledRunService(mockRunner as any);
@@ -60,15 +64,23 @@ describe('ScheduledRunService', () => {
 });
 
 describe('Scheduled Trigger Entry Point', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('ORCH-SCHED-3: Scheduled handler registers the orchestration promise with ctx.waitUntil', async () => {
     const waitUntilMock = vi.fn();
     const ctx = { waitUntil: waitUntilMock } as any;
 
-    await worker.scheduled({} as any, { DB: {} as any } as any, ctx);
+    // We import setupTestDb here locally to avoid polluting the rest of the file
+    const { setupTestDb } = await import('../db/test-utils');
+    const db = await setupTestDb();
+
+    await worker.scheduled({} as any, { DB: db } as any, ctx);
 
     expect(waitUntilMock).toHaveBeenCalled();
     const promise = waitUntilMock.mock.calls[0][0];
     expect(promise).toBeInstanceOf(Promise);
-    await Promise.allSettled([promise]);
+    await Promise.all([promise]);
   });
 });

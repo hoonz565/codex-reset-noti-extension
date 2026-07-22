@@ -7,4 +7,12 @@ export default defineConfig({
       wrangler: { configPath: './wrangler.toml' },
     }),
   ],
+  test: {
+    poolOptions: {
+      workers: {
+        // Resource-control decision: singleWorker prevents concurrent D1 database isolation conflicts
+        singleWorker: true,
+      },
+    },
+  },
 });
