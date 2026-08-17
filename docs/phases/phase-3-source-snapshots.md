@@ -55,7 +55,7 @@ Call the public upstream forecast endpoint, runtime-validate its response, norma
 
 ## 9. Current status
 
-IMPLEMENTED — PENDING REVIEW
+APPROVED
 
 ## 10. Suggested Git branch
 
@@ -93,7 +93,8 @@ When a source is unavailable but a valid snapshot exists previously:
 
 ## 14. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `efa95ce` (`feat: implement Phase 3 source snapshot pipeline`).
+- Regression evidence: [Phase 9 verification report](../../phase-9-report.md).
 
 ## 15. Risks and unresolved questions
 

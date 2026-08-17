@@ -13,6 +13,8 @@ This runbook defines the explicitly gated procedure for deploying to the Product
 
 Stop and request explicit approval from the tech lead or engineering manager before proceeding with any of the following commands.
 
+The exact approval phrase is: `APPROVED TO DEPLOY PHASE 9 TO PRODUCTION`.
+
 ## Deployment Steps
 
 1. **Apply Migrations**

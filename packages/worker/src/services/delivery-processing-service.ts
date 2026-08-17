@@ -97,6 +97,7 @@ export class DeliveryProcessingService {
         subject,
         html,
         text,
+        idempotencyKey: deliveryId,
       });
 
       // Handle Provider Result
@@ -205,10 +206,10 @@ export class DeliveryProcessingService {
         return { outcome: 'retry_scheduled' };
       }
       return { outcome: 'unknown_provider_result' };
-    } catch (e: unknown) {
+    } catch {
       // Unhandled error during processing
       const code = 'INTERNAL_ERROR';
-      const msg = e instanceof Error ? e.message : 'Unknown error';
+      const msg = 'Unhandled provider or processing error';
       // Attempt to schedule a retry since we don't know the nature
       const delivery = await this.deliveryRepo.findById(deliveryId);
       if (!delivery) return { outcome: 'fatal_missing_delivery' };

@@ -19,7 +19,7 @@ describe('Static Analysis Boundary and Cron Tests', () => {
     const cronMatches = tomlContent.match(/crons\s*=\s*\[(.*?)\]/g);
     expect(cronMatches).toBeDefined();
     expect(cronMatches!.length).toBe(1); // No duplicates
-    expect(cronMatches![0]).toContain('"*/5 * * * *"');
+    expect(cronMatches![0]).toContain('"*/15 * * * *"');
   });
 
   it('ORCH-SCHED-6: index.ts scheduled handler delegates only and contains no duplicated snapshot/event/delivery domain pipeline', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DeliveryRetryPolicy } from '../../src/delivery/delivery-retry-policy';
+import retryPolicyCode from '../../src/delivery/delivery-retry-policy.ts?raw';
 
 describe('Delivery Retry Policy', () => {
   const baseDate = new Date('2026-07-18T12:00:00Z');
@@ -40,9 +41,11 @@ describe('Delivery Retry Policy', () => {
     expect(DeliveryRetryPolicy.calculateNextAttemptAt(5, baseDate, null)).toBeNull();
   });
 
-  it('Additional: Retry does not create another delivery row (unit verify)', () => {
-    // This is tested in delivery-processing-service.test.ts where it updates the row instead of creating a new one.
-    expect(true).toBe(true);
+  it('Additional: retry calculation is pure and cannot create another delivery row', () => {
+    expect(retryPolicyCode).not.toMatch(/notification_deliveries|INSERT|UPDATE|D1Database/);
+    const before = baseDate.toISOString();
+    DeliveryRetryPolicy.calculateNextAttemptAt(2, baseDate, null);
+    expect(baseDate.toISOString()).toBe(before);
   });
 
   it('DEL-RETRY-6: Retry sets next_attempt_at deterministically from the injected clock and selected delay.', () => {

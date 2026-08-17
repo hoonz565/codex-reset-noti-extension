@@ -1,8 +1,8 @@
 {
-  "runId": "run-1784711053535",
-  "headCommit": "73f31906f8b9a7b5179a2900547d8c55f9b60f85",
+  "runId": "run-1786975167527",
+  "headCommit": "6981c881fbb0574ed5fe085fceaefdb3bdcee160",
   "packageMetadataChanged": "YES",
-  "dependencyGraphChanged": "NO",
-  "npmCiRequired": "NO",
-  "npmCiExitCode": null
+  "dependencyGraphChanged": "YES",
+  "npmCiRequired": "YES",
+  "npmCiExitCode": 0
 }

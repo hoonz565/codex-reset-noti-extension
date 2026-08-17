@@ -56,7 +56,9 @@ The system uses explicitly separated environments:
 
 - **ADMIN_API_TOKEN**: Protects `/api/admin/metrics`.
 - **EMAIL_PROVIDER_API_KEY**: Authenticates with the email provider.
-- Secrets are bound via Cloudflare `wrangler secret put` and are never committed to Git, fixtures, or `.dev.vars` (except placeholders).
+- **RATE_LIMIT_SECRET**: HMAC key for privacy-preserving public API rate-limit identifiers.
+- Deployed secrets are bound via Cloudflare `wrangler secret put`; local values stay in the ignored
+  `.dev.vars` file, while only `.dev.vars.example` placeholders are committed.
 - See `docs/runbooks/secrets-management.md` for management details.
 
 ## 8. D1 deployment strategy
@@ -134,24 +136,30 @@ Runbooks to be created in `docs/runbooks/`:
 
 ## 18. External approval gates
 
-- **GATE A — LOCAL RELEASE READINESS**: Completed via automated CI checks (`npm test`, build, report generation).
-- **GATE B — STAGING DEPLOYMENT**: Blocked until valid staging credentials and resources are available.
+- **GATE A — LOCAL RELEASE READINESS**: COMPLETE via the canonical clean-lockfile verification,
+  dependency audit, deterministic package/checksum validation, and report generation.
+  Fresh verification run `run-1786971793930` confirms 727 tests (85 files), 0 failures.
+- **GATE B — STAGING DEPLOYMENT**: COMPLETE. Staging Worker successfully deployed to
+  `https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev`, staging D1 database
+  verified, secrets bound, and fresh HTTPS E2E tests verified (Status E2E: 4 passed / 0 failed;
+  Metrics E2E: 8 passed / 0 failed).
 - **GATE C — PRODUCTION DEPLOYMENT**: Explicitly requires `APPROVED TO DEPLOY PHASE 9 TO PRODUCTION`.
 - **GATE D — CHROME WEB STORE SUBMISSION**: Explicitly requires `APPROVED TO SUBMIT PHASE 9 TO CHROME WEB STORE`.
 
 ## 19. Completion evidence
 
-- All 656+ tests passing.
+- All canonical tests pass with zero skips/todos; the generated report records the latest completed
+  clean verification run and is refreshed by `scripts/run-verification.cjs`.
 - Validated staging and production `wrangler.toml`.
 - Runbooks created.
 - `phase-9-report.md` indicating readiness state and gate status.
 
 ## 20. Remaining risks
 
-- Production Chrome Extension ID is not yet defined, which could block Gate B/C.
+- Production D1 ID, Worker hostname, verified sender domain, and Chrome Extension ID are not yet defined.
+- Production secrets must be bound out-of-band before deployment.
 - Chrome Web Store review delays may stall full release.
-- Lack of staging D1 DB bindings may block Gate B.
 
 ## Current status
 
-IMPLEMENTING
+STAGING VERIFIED — GATES A & B COMPLETE; GATES C & D PENDING PRODUCTION SECRETS AND EXPLICIT APPROVAL

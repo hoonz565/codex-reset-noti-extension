@@ -42,8 +42,27 @@ describe('Orchestration Security', () => {
   });
 
   it('ORCH-SEC-6: All orchestration repository SQL values use D1 prepared statements and bound parameters', () => {
-    // We already verified via static analysis earlier that we don't use raw SQL injection, but we assert true here.
-    expect(true).toBe(true);
+    const repositoryModules = import.meta.glob('../../src/db/repositories/*.ts', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const orchestrationRepositories = Object.entries(repositoryModules).filter(([path]) =>
+      /OrchestrationRun|SourceSnapshot|ResetCycle|ResetEvent|NotificationDelivery/.test(path)
+    );
+
+    expect(orchestrationRepositories.length).toBeGreaterThan(0);
+    for (const [, source] of orchestrationRepositories) {
+      const code = String(source);
+      expect(code).toContain('.prepare(');
+      const interpolations = [...code.matchAll(/\$\{([^}]+)\}/g)].map((match) => match[1]);
+      expect(
+        interpolations.every((expression) => /^(?:key|idx|fields\.join\(', '\))$/.test(expression))
+      ).toBe(true);
+    }
+    expect(orchestrationRepositories.some(([, source]) => String(source).includes('.bind('))).toBe(
+      true
+    );
   });
 
   it('ORCH-SEC-7: An allowed CORS Origin without a valid bearer token remains unauthorized and causes no orchestration invocation', async () => {

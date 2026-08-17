@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-undef, @typescript-eslint/no-require-imports */
 /**
  * verify-staging-e2e.cjs
  *
@@ -23,15 +24,14 @@ const fs = require('fs');
 const path = require('path');
 
 const STAGING_URL =
-  'https://codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev';
-const STAGING_ORIGIN = 'chrome-extension://staging-extension-id-placeholder';
+  process.env.STAGING_WORKER_URL ||
+  'https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev';
+const STAGING_ORIGIN =
+  process.env.STAGING_EXTENSION_ORIGIN || 'chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc';
 const FORBIDDEN_ORIGIN = 'https://evil.example.com';
 const ARTIFACTS_DIR = path.join(__dirname, '..', 'artifacts');
 
-const REQUIRED_STATUS_KEYS = [
-  'schemaVersion',
-  'status',
-];
+const REQUIRED_STATUS_KEYS = ['schemaVersion', 'status'];
 const REQUIRED_STATUS_INNER_KEYS = [
   'state',
   'probability',
@@ -39,9 +39,18 @@ const REQUIRED_STATUS_INNER_KEYS = [
   'lastKnownObservedAt',
   'resetAnnounced',
   'latestResetAt',
-  'latestResetObservedAt',
+  'resetCycleId',
+  'checkedAt',
 ];
-const FORBIDDEN_KEYS = ['subscribers', 'email', 'token', 'apiKey', 'secret', 'rawUpstream', 'provider'];
+const FORBIDDEN_KEYS = [
+  'subscribers',
+  'email',
+  'token',
+  'apiKey',
+  'secret',
+  'rawUpstream',
+  'provider',
+];
 
 function fetch(url, options = {}) {
   return new Promise((resolve, reject) => {
@@ -55,13 +64,17 @@ function fetch(url, options = {}) {
     };
     const req = https.request(reqOptions, (res) => {
       let body = '';
-      res.on('data', (chunk) => { body += chunk; });
+      res.on('data', (chunk) => {
+        body += chunk;
+      });
       res.on('end', () => {
         resolve({ status: res.statusCode, headers: res.headers, body });
       });
     });
     req.on('error', reject);
-    req.setTimeout(15000, () => { req.destroy(new Error('Request timed out')); });
+    req.setTimeout(15000, () => {
+      req.destroy(new Error('Request timed out'));
+    });
     if (options.body) req.write(options.body);
     req.end();
   });
@@ -70,10 +83,18 @@ function fetch(url, options = {}) {
 function sanitizeHeaders(headers) {
   const safe = {};
   const ALLOWED_HEADERS = [
-    'content-type', 'cache-control', 'access-control-allow-origin',
-    'access-control-allow-methods', 'access-control-allow-headers',
-    'access-control-max-age', 'vary', 'x-content-type-options',
-    'cf-ray', 'cf-cache-status', 'date', 'allow',
+    'content-type',
+    'cache-control',
+    'access-control-allow-origin',
+    'access-control-allow-methods',
+    'access-control-allow-headers',
+    'access-control-max-age',
+    'vary',
+    'x-content-type-options',
+    'cf-ray',
+    'cf-cache-status',
+    'date',
+    'allow',
   ];
   for (const h of ALLOWED_HEADERS) {
     if (headers[h] !== undefined) safe[h] = headers[h];
@@ -86,7 +107,7 @@ function checkForbiddenKeys(obj, path = '') {
   if (typeof obj !== 'object' || obj === null) return found;
   for (const key of Object.keys(obj)) {
     const fullPath = path ? `${path}.${key}` : key;
-    if (FORBIDDEN_KEYS.some(fk => key.toLowerCase().includes(fk.toLowerCase()))) {
+    if (FORBIDDEN_KEYS.some((fk) => key.toLowerCase().includes(fk.toLowerCase()))) {
       found.push(fullPath);
     }
     if (typeof obj[key] === 'object') {
@@ -100,7 +121,8 @@ const results = {
   runAt: new Date().toISOString(),
   stagingUrl: STAGING_URL,
   stagingOrigin: STAGING_ORIGIN,
-  corsNote: 'Contract verification only — real Chrome extension origin NOT VERIFIED. Blocking input: actual staging extension ID.',
+  corsNote:
+    'Contract verification only — real Chrome extension origin NOT VERIFIED. Blocking input: actual staging extension ID.',
   tests: [],
   summary: { passed: 0, failed: 0 },
 };
@@ -133,11 +155,16 @@ async function runTests() {
       fail('GET /api/status — HTTP 200', `Expected 200, got ${res.status}`, evidence);
     } else {
       let json;
-      try { json = JSON.parse(res.body); } catch { fail('GET /api/status — JSON parse', 'Invalid JSON', evidence); return; }
+      try {
+        json = JSON.parse(res.body);
+      } catch {
+        fail('GET /api/status — JSON parse', 'Invalid JSON', evidence);
+        return;
+      }
 
       const schemaOk = json.schemaVersion === 1;
-      const hasRequiredKeys = REQUIRED_STATUS_KEYS.every(k => k in json);
-      const hasInnerKeys = json.status && REQUIRED_STATUS_INNER_KEYS.every(k => k in json.status);
+      const hasRequiredKeys = REQUIRED_STATUS_KEYS.every((k) => k in json);
+      const hasInnerKeys = json.status && REQUIRED_STATUS_INNER_KEYS.every((k) => k in json.status);
       const forbiddenFound = checkForbiddenKeys(json);
       const cacheControl = res.headers['cache-control'] || '';
       const cacheOk = cacheControl.length > 0;
@@ -147,14 +174,21 @@ async function runTests() {
       evidence.cacheControl = cacheControl;
       evidence.corsHeader = res.headers['access-control-allow-origin'] || 'absent';
 
-      if (!schemaOk) fail('GET /api/status — schemaVersion', `Expected 1, got ${json.schemaVersion}`, evidence);
-      else if (!hasRequiredKeys) fail('GET /api/status — required keys', `Missing top-level keys`, evidence);
-      else if (!hasInnerKeys) fail('GET /api/status — inner status keys', `Missing status.* keys`, evidence);
-      else if (forbiddenFound.length > 0) fail('GET /api/status — forbidden keys', `Found: ${forbiddenFound.join(', ')}`, evidence);
-      else if (!cacheOk) fail('GET /api/status — Cache-Control', 'Cache-Control header absent', evidence);
+      if (!schemaOk)
+        fail('GET /api/status — schemaVersion', `Expected 1, got ${json.schemaVersion}`, evidence);
+      else if (!hasRequiredKeys)
+        fail('GET /api/status — required keys', `Missing top-level keys`, evidence);
+      else if (!hasInnerKeys)
+        fail('GET /api/status — inner status keys', `Missing status.* keys`, evidence);
+      else if (forbiddenFound.length > 0)
+        fail('GET /api/status — forbidden keys', `Found: ${forbiddenFound.join(', ')}`, evidence);
+      else if (!cacheOk)
+        fail('GET /api/status — Cache-Control', 'Cache-Control header absent', evidence);
       else pass('GET /api/status — HTTP 200, schema, keys, no PII, Cache-Control', evidence);
     }
-  } catch (e) { fail('GET /api/status', e.message, {}); }
+  } catch (e) {
+    fail('GET /api/status', e.message, {});
+  }
 
   console.log('\n=== Live Status E2E: OPTIONS /api/status (staging origin) ===');
   try {
@@ -166,10 +200,14 @@ async function runTests() {
     const hasAllowOrigin = !!res.headers['access-control-allow-origin'];
     const hasAllowMethods = !!res.headers['access-control-allow-methods'];
     if (res.status !== 204) fail('OPTIONS /api/status — HTTP 204', `Got ${res.status}`, evidence);
-    else if (!hasAllowOrigin) fail('OPTIONS /api/status — ACAO header', 'Missing Access-Control-Allow-Origin', evidence);
-    else if (!hasAllowMethods) fail('OPTIONS /api/status — ACAM header', 'Missing Access-Control-Allow-Methods', evidence);
+    else if (!hasAllowOrigin)
+      fail('OPTIONS /api/status — ACAO header', 'Missing Access-Control-Allow-Origin', evidence);
+    else if (!hasAllowMethods)
+      fail('OPTIONS /api/status — ACAM header', 'Missing Access-Control-Allow-Methods', evidence);
     else pass('OPTIONS /api/status — HTTP 204, CORS headers present', evidence);
-  } catch (e) { fail('OPTIONS /api/status', e.message, {}); }
+  } catch (e) {
+    fail('OPTIONS /api/status', e.message, {});
+  }
 
   console.log('\n=== Live Status E2E: GET /api/status (forbidden origin) ===');
   try {
@@ -177,9 +215,12 @@ async function runTests() {
       headers: { Origin: FORBIDDEN_ORIGIN },
     });
     const evidence = { status: res.status, headers: sanitizeHeaders(res.headers) };
-    if (res.status !== 403) fail('GET /api/status forbidden origin — HTTP 403', `Got ${res.status}`, evidence);
+    if (res.status !== 403)
+      fail('GET /api/status forbidden origin — HTTP 403', `Got ${res.status}`, evidence);
     else pass('GET /api/status forbidden origin — HTTP 403 rejected', evidence);
-  } catch (e) { fail('GET /api/status forbidden origin', e.message, {}); }
+  } catch (e) {
+    fail('GET /api/status forbidden origin', e.message, {});
+  }
 
   console.log('\n=== Live Status E2E: POST /api/status ===');
   try {
@@ -191,7 +232,9 @@ async function runTests() {
     const evidence = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status !== 405) fail('POST /api/status — HTTP 405', `Got ${res.status}`, evidence);
     else pass('POST /api/status — HTTP 405 method not allowed', evidence);
-  } catch (e) { fail('POST /api/status', e.message, {}); }
+  } catch (e) {
+    fail('POST /api/status', e.message, {});
+  }
 
   // Write results
   fs.writeFileSync(
@@ -203,4 +246,7 @@ async function runTests() {
   if (results.summary.failed > 0) process.exit(1);
 }
 
-runTests().catch(e => { console.error(e); process.exit(1); });
+runTests().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

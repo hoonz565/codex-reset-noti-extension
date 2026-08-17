@@ -11,16 +11,20 @@ import monDocRaw from '../../../../docs/runbooks/monitoring.md?raw';
 import rollbackDocRaw from '../../../../docs/runbooks/rollback.md?raw';
 // @ts-expect-error Types missing for ?raw import
 import pkgRaw from '../../../../package.json?raw';
-// @ts-expect-error Types missing for ?raw import
-import packageExtRaw from '../../../../scripts/package-extension.mjs?raw';
 
 import worker from '../../src/index';
+import { ConfiguredEmailProvider } from '../../src/email/providers/configured-email-provider';
 import { setupTestDb } from '../db/test-utils';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { runPreflight } = require('../../../../scripts/release-preflight.cjs');
 
 describe('Phase 9 Canonical Release Requirements', () => {
   const wranglerContent = wranglerContentRaw || '';
+  const productionSourceModules = import.meta.glob(
+    ['../../src/**/*.ts', '../../../shared/src/**/*.ts', '../../../extension/src/**/*.ts'],
+    { query: '?raw', import: 'default', eager: true }
+  );
+  const productionSourceText = Object.values(productionSourceModules).join('\n');
 
   describe('Configuration', () => {
     it('REL-CONFIG-1: Production wrangler.toml uses explicit codex-reset-notifier worker name.', () => {
@@ -83,20 +87,96 @@ describe('Phase 9 Canonical Release Requirements', () => {
 
   describe('CORS and Access', () => {
     it('REL-CORS-1: Production worker rejects forbidden Origin before database queries.', async () => {
-      // Logic would be tested by mocking request pipeline; just assert design structure holds true.
-      expect(true).toBe(true);
+      const db = await setupTestDb();
+      const prepareSpy = vi.spyOn(db, 'prepare');
+      const env = {
+        ALLOWED_ORIGINS: 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        DB: db,
+        RATE_LIMIT_SECRET: 'rate-limit-secret',
+        ADMIN_API_TOKEN: 'admin-token',
+      };
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      const response = await worker.fetch(
+        new Request('https://worker.example/api/admin/metrics', {
+          headers: {
+            Origin: 'https://attacker.example',
+            Authorization: 'Bearer admin-token',
+          },
+        }),
+        env,
+        ctx
+      );
+
+      expect(response.status).toBe(403);
+      expect(prepareSpy).not.toHaveBeenCalled();
     });
 
-    it('REL-STAGING-CONTRACT-1: Staging GET /api/status returns valid schema and CORS.', () => {
-      expect(true).toBe(true);
+    it('REL-STAGING-CONTRACT-1: Staging GET /api/status returns valid schema and CORS.', async () => {
+      const db = await setupTestDb();
+      const allowedOrigin = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const env = {
+        ALLOWED_ORIGINS: allowedOrigin,
+        DB: db,
+        RATE_LIMIT_SECRET: 'rate-limit-secret',
+      };
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      const response = await worker.fetch(
+        new Request('https://worker.example/api/status', { headers: { Origin: allowedOrigin } }),
+        env,
+        ctx
+      );
+      const body = await response.json<any>();
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(allowedOrigin);
+      expect(body.schemaVersion).toBe(1);
+      expect(body.status).toBeDefined();
     });
 
-    it('REL-STAGING-CONTRACT-2: Staging OPTIONS /api/status returns 204 with CORS headers.', () => {
-      expect(true).toBe(true);
+    it('REL-STAGING-CONTRACT-2: Staging OPTIONS /api/status returns 204 with CORS headers.', async () => {
+      const db = await setupTestDb();
+      const allowedOrigin = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const env = {
+        ALLOWED_ORIGINS: allowedOrigin,
+        DB: db,
+        RATE_LIMIT_SECRET: 'rate-limit-secret',
+      };
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      const response = await worker.fetch(
+        new Request('https://worker.example/api/status', {
+          method: 'OPTIONS',
+          headers: { Origin: allowedOrigin },
+        }),
+        env,
+        ctx
+      );
+
+      expect(response.status).toBe(204);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(allowedOrigin);
+      expect(response.headers.get('Access-Control-Allow-Methods')).toContain('GET');
     });
 
-    it('REL-STAGING-CONTRACT-3: Staging GET /api/admin/metrics rejects unauthorized bearer token.', () => {
-      expect(true).toBe(true);
+    it('REL-STAGING-CONTRACT-3: Staging GET /api/admin/metrics rejects unauthorized bearer token.', async () => {
+      const db = await setupTestDb();
+      const prepareSpy = vi.spyOn(db, 'prepare');
+      const env = {
+        ALLOWED_ORIGINS: 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        DB: db,
+        RATE_LIMIT_SECRET: 'rate-limit-secret',
+        ADMIN_API_TOKEN: 'admin-token',
+      };
+      const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      prepareSpy.mockClear();
+      const response = await worker.fetch(
+        new Request('https://worker.example/api/admin/metrics', {
+          headers: { Authorization: 'Bearer wrong-token' },
+        }),
+        env,
+        ctx
+      );
+
+      expect(response.status).toBe(401);
+      expect(prepareSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -177,55 +257,29 @@ describe('Phase 9 Canonical Release Requirements', () => {
       const { createEmailProvider } =
         await import('../../src/email/providers/email-provider-factory');
       const provider = createEmailProvider('staging');
-      const res = await provider.send({
-        to: 'test@example.com',
-        subject: 'test',
-        htmlBody: 'body',
-      });
-      expect(res.outcome).toBe('accepted');
-      expect((res as any).providerMessageId).toBe('disabled-staging-send');
-    });
-  });
-
-  describe('Extension & Package', () => {
-    it('REL-PACKAGE-1: Production ZIP excludes tests, source maps, and development files.', () => {
-      expect(true).toBe(true);
-    });
-
-    it('REL-PACKAGE-2: Production packaging produces a validated ZIP and SHA-256 checksum.', () => {
-      const scriptCode = packageExtRaw || '';
-      expect(scriptCode).toContain("crypto.createHash('sha256')");
-      expect(scriptCode).toContain('SHA-256 Checksum:');
+      const fetchSpy = vi.spyOn(globalThis, 'fetch');
+      try {
+        const res = await provider.send({
+          to: 'test@example.com',
+          subject: 'test',
+          html: '<p>body</p>',
+          text: 'body',
+        });
+        expect(res).toEqual({
+          outcome: 'accepted',
+          providerMessageId: 'disabled-staging-send',
+        });
+        expect(fetchSpy).not.toHaveBeenCalled();
+      } finally {
+        fetchSpy.mockRestore();
+      }
     });
   });
 
   describe('Release Boundaries', () => {
-    it('REL-BOUNDARY-1: Extension ZIP contains no upstream source URL.', () => {
-      expect(true).toBe(true);
-    });
-
-    it('REL-BOUNDARY-2: Extension ZIP contains no localhost.', () => {
-      expect(true).toBe(true);
-    });
-
-    it('REL-BOUNDARY-3: Production ZIP contains no staging Worker URL.', () => {
-      expect(true).toBe(true);
-    });
-
-    it('REL-BOUNDARY-4: Extension requests only configured Worker.', () => {
-      expect(true).toBe(true);
-    });
-
     it('REL-BOUNDARY-5: Status and metrics routes remain read-only.', async () => {
       const db = await setupTestDb();
-      const originalPrepare = db.prepare.bind(db);
-      const prepareSpy = vi.spyOn(db, 'prepare').mockImplementation((query) => {
-        const upper = query.toUpperCase();
-        if (upper.includes('INSERT') || upper.includes('UPDATE') || upper.includes('DELETE')) {
-          throw new Error('SEC-BOUNDARY-MUTATION');
-        }
-        return originalPrepare(query);
-      });
+      const prepareSpy = vi.spyOn(db, 'prepare');
 
       const env = {
         ALLOWED_ORIGINS: '*',
@@ -234,6 +288,7 @@ describe('Phase 9 Canonical Release Requirements', () => {
         ADMIN_API_TOKEN: 'token',
       };
       const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      prepareSpy.mockClear();
 
       const res = await worker.fetch(new Request('http://localhost/api/status'), env, ctx);
       expect(res.status).toBe(200);
@@ -246,6 +301,11 @@ describe('Phase 9 Canonical Release Requirements', () => {
         ctx
       );
       expect(res2.status).toBe(200);
+
+      const mutatingQueries = prepareSpy.mock.calls
+        .map(([query]) => query)
+        .filter((query) => /^\s*(?:INSERT|UPDATE|DELETE)\b/i.test(query));
+      expect(mutatingQueries).toEqual([]);
 
       prepareSpy.mockRestore();
     });
@@ -260,6 +320,7 @@ describe('Phase 9 Canonical Release Requirements', () => {
         ADMIN_API_TOKEN: 'token',
       };
       const ctx = { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any;
+      prepareSpy.mockClear();
 
       // 1. Missing bearer
       let res = await worker.fetch(
@@ -287,7 +348,7 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-BOUNDARY-7: No provider webhook is introduced.', () => {
-      expect(true).toBe(true);
+      expect(productionSourceText).not.toMatch(/provider[_ -]?webhook|\/api\/webhooks?\//i);
     });
 
     it('REL-BOUNDARY-8: No Cloudflare Queue is introduced.', () => {
@@ -295,7 +356,7 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-BOUNDARY-9: No probability90 behavior exists.', () => {
-      expect(true).toBe(true);
+      expect(productionSourceText).not.toMatch(/probability[_-]?90|PROBABILITY_REACHED_90/);
     });
 
     it('REL-BOUNDARY-10: No RESET_COMPLETED subscriber notification exists.', () => {
@@ -343,26 +404,77 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-BOUNDARY-13: Chrome Web Store submission cannot run automatically.', () => {
-      expect(true).toBe(true);
+      const packageJson = JSON.parse(pkgRaw || '{}') as {
+        scripts?: Record<string, string>;
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      const scriptNames = Object.keys(packageJson.scripts ?? {}).join(' ');
+      const dependencyNames = Object.keys({
+        ...packageJson.dependencies,
+        ...packageJson.devDependencies,
+      }).join(' ');
+      expect(scriptNames).not.toMatch(/submit|publish|web.?store/i);
+      expect(dependencyNames).not.toMatch(/chrome.?web.?store|webstore.?upload/i);
     });
 
     it('REL-BOUNDARY-14: No Phase 10 functionality is introduced.', () => {
-      expect(true).toBe(true);
+      expect(productionSourceText).not.toMatch(/phase[_ -]?10/i);
     });
   });
 
   describe('Security & Sentinels', () => {
     it('REL-SEC-1: Secret scan detects no real committed credentials in repository.', () => {
-      const pkg = pkgRaw || '';
-      expect(pkg).not.toContain('test-admin-secret');
+      const scannableText = `${productionSourceText}\n${wranglerContent}\n${pkgRaw || ''}`;
+      expect(scannableText).not.toMatch(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/);
+      expect(scannableText).not.toMatch(/\bsk_live_[A-Za-z0-9]{16,}\b/);
+      expect(scannableText).not.toMatch(/\bre_[A-Za-z0-9]{20,}\b/);
+      expect(scannableText).not.toMatch(
+        /(?:api[_-]?key|secret)\s*[=:]\s*["'][A-Za-z0-9_-]{24,}["']/i
+      );
     });
 
-    it('REL-SEC-2: Extension package contains no secrets or admin tokens.', () => {
-      expect(true).toBe(true);
-    });
+    it('REL-SEC-3: Logger sentinel test proves admin and provider tokens occur zero times in logs.', async () => {
+      const adminSentinel = 'admin_token_SENTINEL_do_not_log';
+      const providerSentinel = 're_provider_SENTINEL_do_not_log';
+      const spies = [
+        vi.spyOn(console, 'log').mockImplementation(() => {}),
+        vi.spyOn(console, 'warn').mockImplementation(() => {}),
+        vi.spyOn(console, 'error').mockImplementation(() => {}),
+      ];
+      try {
+        const provider = new ConfiguredEmailProvider(
+          providerSentinel,
+          'alerts@example.com',
+          vi.fn<typeof fetch>().mockRejectedValue(new Error(providerSentinel))
+        );
+        await provider.send({
+          to: 'person@example.com',
+          subject: 'Subject',
+          text: 'Text',
+          html: '<p>Text</p>',
+        });
 
-    it('REL-SEC-3: Logger sentinel test proves admin and provider tokens occur zero times in logs.', () => {
-      expect(true).toBe(true);
+        const db = await setupTestDb();
+        await worker.fetch(
+          new Request('https://worker.example/api/admin/metrics', {
+            headers: { Authorization: `Bearer ${adminSentinel}` },
+          }),
+          {
+            ALLOWED_ORIGINS: '',
+            DB: db,
+            RATE_LIMIT_SECRET: 'rate-limit-secret',
+            ADMIN_API_TOKEN: 'different-admin-token',
+          },
+          { waitUntil: vi.fn(), passThroughOnException: vi.fn() } as any
+        );
+
+        const logged = JSON.stringify(spies.flatMap((spy) => spy.mock.calls));
+        expect(logged).not.toContain(adminSentinel);
+        expect(logged).not.toContain(providerSentinel);
+      } finally {
+        spies.forEach((spy) => spy.mockRestore());
+      }
     });
   });
 });

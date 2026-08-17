@@ -13,16 +13,16 @@ The original design used GitHub Actions as the runtime scheduler, Google Sheets 
 
 **Selected architecture:**
 
-| Concern           | Chosen Technology                  | Reason                                           |
-| ----------------- | ---------------------------------- | ------------------------------------------------ |
-| Runtime compute   | Cloudflare Workers                 | Edge compute, generous free tier, TypeScript     |
-| Scheduled polling | Cloudflare Cron Triggers           | Native scheduler, no Git-commit side effects     |
-| Persistent state  | Cloudflare D1 (SQLite)             | Relational, free tier, native Worker binding     |
-| Subscription API  | Cloudflare Worker HTTP handlers    | Same runtime as crawler                          |
-| Public status API | Cloudflare Worker HTTP handlers    | Consistent backend, proper CORS                  |
-| Email delivery    | Pluggable EmailNotificationChannel | Resend, Mailgun, or optional Apps Script adapter |
-| CI/CD             | GitHub Actions                     | Lint, test, build, deploy, migration             |
-| Chrome Extension  | Manifest V3                        | Per original spec                                |
+| Concern           | Chosen Technology               | Reason                                                 |
+| ----------------- | ------------------------------- | ------------------------------------------------------ |
+| Runtime compute   | Cloudflare Workers              | Edge compute, generous free tier, TypeScript           |
+| Scheduled polling | Cloudflare Cron Triggers        | Native scheduler, no Git-commit side effects           |
+| Persistent state  | Cloudflare D1 (SQLite)          | Relational, free tier, native Worker binding           |
+| Subscription API  | Cloudflare Worker HTTP handlers | Same runtime as crawler                                |
+| Public status API | Cloudflare Worker HTTP handlers | Consistent backend, proper CORS                        |
+| Email delivery    | EmailProvider boundary          | Resend in production; mock/disabled adapters elsewhere |
+| CI/CD             | GitHub Actions                  | Lint, test, build, deploy, migration                   |
+| Chrome Extension  | Manifest V3                     | Per original spec                                      |
 
 **Eliminated from primary architecture:**
 
@@ -112,6 +112,17 @@ The original design used GitHub Actions as the runtime scheduler, Google Sheets 
 
 ---
 
+### Current HTTP surface
+
+The route labels in the conceptual diagram above are superseded by the implemented API surface:
+
+- `GET /api/status`
+- `POST /api/subscriptions` and `POST /api/subscriptions/confirm`
+- `POST /api/subscriptions/request-management-link`
+- `GET/PATCH /api/subscriptions/manage` and `POST /api/subscriptions/unsubscribe`
+- `GET /confirm` and `GET /manage` for the no-store hosted browser flow
+- `GET /api/admin/metrics` and `POST /api/admin/orchestration/run`
+
 ## 3. GitHub Actions — CI/CD Only
 
 GitHub Actions is **strictly limited to CI/CD**. It does not run the production crawler, write state files, or dispatch events.
@@ -143,23 +154,26 @@ GitHub Actions is **strictly limited to CI/CD**. It does not run the production 
 
 ## 4. Cloudflare Free Tier Constraints
 
-| Resource            | Free Limit            | Our Expected Usage        |
-| ------------------- | --------------------- | ------------------------- |
-| Worker requests/day | 100,000               | ~150/day (144 cron + API) |
-| Worker CPU time     | 10ms/request (shared) | < 5ms per cron cycle      |
-| D1 reads/day        | 5,000,000             | << limit                  |
-| D1 writes/day       | 100,000               | << limit                  |
-| D1 storage          | 5 GB                  | Negligible for MVP        |
-| Cron triggers       | 5 per Worker          | 1 used                    |
-| Workers             | Unlimited deployments | 1 Worker                  |
+| Resource            | Free Limit            | Our Expected Usage                     |
+| ------------------- | --------------------- | -------------------------------------- |
+| Worker requests/day | 100,000               | 96 scheduled runs/day plus API traffic |
+| Worker CPU time     | 10ms/request (shared) | < 5ms per cron cycle                   |
+| D1 reads/day        | 5,000,000             | << limit                               |
+| D1 writes/day       | 100,000               | << limit                               |
+| D1 storage          | 5 GB                  | Negligible for MVP                     |
+| Cron triggers       | 5 per account         | 1 used                                 |
+| Workers             | 100 per account       | 2 planned (staging + production)       |
 
-**Important caveat:** Free tier limits may change. Document this for users.
+Sources: [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
+and [D1 pricing/limits](https://developers.cloudflare.com/d1/platform/pricing/), checked
+2026-08-17. Free-tier limits can change and must be rechecked before production deployment.
 
 ---
 
-## 5. Optional Temporary Apps Script Email Adapter
+## 5. Rejected Temporary Apps Script Email Adapter
 
-> **Classification: Optional temporary adapter only. Not part of primary architecture.**
+> **Status: not implemented and not approved for the MVP.** Production uses the Resend adapter; staging
+> uses the network-free disabled adapter.
 
 A Google Apps Script MailApp adapter may be documented as a zero-credential fallback for users who cannot obtain an email provider API key. It must:
 
@@ -174,7 +188,12 @@ The adapter receives a structured `NotificationDelivery` object and calls `MailA
 
 ---
 
-## 6. Worker Structure (Target)
+## 6. Historical Worker Structure Target
+
+The tree below is retained as the original design sketch. The implemented structure is authoritative
+under `packages/worker/src/`, with native fetch routing in `index.ts`, hosted pages in
+`http/public-pages.ts`, repositories in `db/repositories/`, and provider adapters in
+`email/providers/`.
 
 ```
 src/
@@ -235,11 +254,13 @@ Secrets per environment stored in Cloudflare dashboard (not `.env` committed to 
 
 ```
 # Required Cloudflare secrets (wrangler secret put):
-DISPATCH_SECRET           ← internal admin auth
-EMAIL_PROVIDER_API_KEY    ← provider key (Resend/Mailgun)
-UNSUBSCRIBE_HMAC_SECRET   ← signs unsubscribe links
-MANAGEMENT_TOKEN_SALT     ← for management token hashing
-CONFIRMATION_TOKEN_SALT   ← for confirmation token hashing
+ADMIN_API_TOKEN           ← internal admin auth
+EMAIL_PROVIDER_API_KEY    ← Resend API key
+RATE_LIMIT_SECRET         ← HMAC key for privacy-safe rate-limit identifiers
+
+# Non-secret production variables:
+EMAIL_FROM_ADDRESS        ← verified sender identity
+MANAGEMENT_PAGE_URL       ← public Worker /manage URL
 ```
 
 ---

@@ -147,15 +147,62 @@ function generateReport(baseDir = '.', dryRun = false) {
   }
   const preflightResult = JSON.parse(fs.readFileSync(preflightResultPath, 'utf8'));
 
-  let isStagingBlocked = preflightResult.exitCode === 2;
+  const isStagingBlocked = preflightResult.exitCode === 2;
+
+  function readLiveResult(fileName) {
+    const resultPath = path.join(artifactsDir, fileName);
+    if (!fs.existsSync(resultPath)) return null;
+    try {
+      const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
+      const runAt = new Date(result.runAt).getTime();
+      return {
+        ...result,
+        fresh: Number.isFinite(runAt) && Date.now() - runAt <= 24 * 60 * 60 * 1000,
+        passed:
+          result.summary?.failed === 0 &&
+          typeof result.summary?.passed === 'number' &&
+          result.summary.passed > 0,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  const liveStatus = readLiveResult('staging-e2e-status.json');
+  const liveMetrics = readLiveResult('staging-e2e-metrics.json');
+  const hasFreshLiveFailure =
+    (liveStatus?.fresh && !liveStatus.passed) || (liveMetrics?.fresh && !liveMetrics.passed);
+  const gateBVerified =
+    !isStagingBlocked &&
+    liveStatus?.fresh &&
+    liveStatus.passed &&
+    liveMetrics?.fresh &&
+    liveMetrics.passed;
   const statusText = isStagingBlocked
-    ? 'PHASE 9 LOCAL READY — STAGING CONFIGURATION REQUIRED'
-    : 'PHASE 9 LOCAL READY — READY TO DEPLOY STAGING';
+    ? 'PHASE 9 LOCAL READY - STAGING CONFIGURATION REQUIRED'
+    : gateBVerified
+      ? 'PHASE 9 STAGING VERIFIED - GATE B COMPLETE'
+      : hasFreshLiveFailure
+        ? 'PHASE 9 LOCAL READY - STAGING REDEPLOYMENT REQUIRED'
+        : 'PHASE 9 LOCAL READY - STAGING REVALIDATION REQUIRED';
 
   // Read dep status
   const depStatusPath = path.join(artifactsDir, 'dependency-status.json');
   if (!fs.existsSync(depStatusPath)) {
     throw new Error('Missing dependency-status.json');
+  }
+
+  const packageResultPath = path.join(artifactsDir, 'extension-package.json');
+  if (!fs.existsSync(packageResultPath)) {
+    throw new Error('Missing extension-package.json');
+  }
+  const packageResult = JSON.parse(fs.readFileSync(packageResultPath, 'utf8'));
+  if (
+    packageResult.runId !== verifyRun.runId ||
+    packageResult.headCommit !== verifyRun.headCommit ||
+    packageResult.checksumVerified !== true
+  ) {
+    throw new Error('Extension package evidence does not match the verification run.');
   }
 
   let md = '# Phase 9 Verification Report\n\n';
@@ -166,8 +213,10 @@ function generateReport(baseDir = '.', dryRun = false) {
   md += '- `npm run format:check`: Exit Code 0\n';
   md += '- `npm run lint`: Exit Code 0\n';
   md += '- `npm run typecheck`: Exit Code 0\n';
-  md += '- `npm run test`: Exit Code 0\n';
-  md += '- `npm run build`: Exit Code 0\n\n';
+  md += '- Workspace Vitest commands: Exit Code 0 for every workspace\n';
+  md += '- `npm run build`: Exit Code 0\n';
+  md += '- `npm audit --audit-level=moderate`: Exit Code 0\n';
+  md += '- `npm run package:extension`: Exit Code 0\n\n';
 
   md += '## 3. Previous Phase 8 baseline\n\n';
   md += '- Monorepo total: 656\n';
@@ -233,6 +282,7 @@ function generateReport(baseDir = '.', dryRun = false) {
     'artifacts/staging-preflight-result.json',
     'artifacts/command-results.json',
     'artifacts/verification-run.json',
+    'artifacts/extension-package.json',
     'extension-release.zip',
   ];
 
@@ -294,35 +344,33 @@ function generateReport(baseDir = '.', dryRun = false) {
     '| Environment | Worker Name | DB Binding | CORS Allowed Origins | Email Provider | Admin Auth |\n';
   md += '|---|---|---|---|---|---|\n';
   md +=
-    '| development | codex-reset-notifier-dev | DB | http://localhost:* | Mock/Console | ADMIN_API_TOKEN — local placeholder |\n';
+    '| development | codex-reset-notifier | codex_reset_dev | explicit unpacked-extension IDs | MockEmailProvider | local placeholder |\n';
   md +=
-    '| staging | codex-reset-notifier-staging | DB | chrome-extension://<STAGING_ID> | DisabledEmailProvider | ADMIN_API_TOKEN — remote existence not verified |\n';
+    '| staging | codex-reset-notifier-staging | codex_reset_staging | chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc | DisabledEmailProvider | ADMIN_API_TOKEN - live revalidation required |\n';
   md +=
-    '| production | codex-reset-notifier | DB | chrome-extension://<PRODUCTION_ID> | MailgunProvider | ADMIN_API_TOKEN — remote existence not verified |\n\n';
+    '| production | codex-reset-notifier | blocking placeholder | chrome-extension://<PRODUCTION_ID> | ResendEmailProvider | ADMIN_API_TOKEN - not configured |\n\n';
 
   md += '## 9. Secret inventory by binding name only\n\n';
-  md += '- ADMIN_API_TOKEN\n- EMAIL_PROVIDER_API_KEY\n\n';
+  md += '- ADMIN_API_TOKEN\n- EMAIL_PROVIDER_API_KEY\n- RATE_LIMIT_SECRET\n\n';
 
   md += '## 10. D1 isolation evidence\n\n';
   md +=
-    'wrangler.toml explicitly defines separate `database_id` values for staging and production environments under `[env.staging]` and `[env.production]`.\n\n';
+    'wrangler.toml defines separate staging and production D1 bindings. The production ID remains a blocking placeholder and production preflight rejects it, so this is configuration isolation evidence rather than deployment evidence.\n\n';
 
   md += '## 11. CORS evidence\n\n';
   md +=
-    'Production explicitly uses `ALLOWED_ORIGINS` excluding wildcards and localhost. Tests verify 403 on origin mismatch.\n\n';
+    'The production template excludes wildcards and localhost, and production preflight rejects its unresolved extension-ID placeholder. Tests verify 403 on origin mismatch before D1 access.\n\n';
 
   md += '## 12. Email safety evidence\n\n';
   md += 'Staging email configuration is neutralized to prevent mailing arbitrary real users.\n\n';
 
   md += '## 13. Extension package evidence\n\n';
-  md +=
-    'Production extension build successfully executes omitting development and test files. SHA-256 generated.\n\n';
+  md += `A deterministic verification package was built with checksum \`${packageResult.sha256}\`. It is not the final store artifact; Gate D must rebuild it with the deployed production Worker origin.\n\n`;
 
   md += '## 14. Test process integrity evidence\n\n';
   md += '- Exact per-workspace test commands:\n';
-  md += '  - `packages/shared`: `npm run test --workspace packages/shared`\n';
-  md += '  - `packages/extension`: `npm run test --workspace packages/extension`\n';
-  md += '  - `packages/worker`: `npm run test --workspace packages/worker`\n';
+  md +=
+    '  - Each workspace runs `npx vitest run --reporter default --reporter json --outputFile verification-results.json` with that workspace as its current directory.\n';
   md += '- Exact per-workspace process exit codes:\n';
   md += '  - `packages/shared`: Exit Code 0\n';
   md += '  - `packages/extension`: Exit Code 0\n';
@@ -333,7 +381,9 @@ function generateReport(baseDir = '.', dryRun = false) {
   md += '- dangerouslyIgnoreUnhandledErrors: DISABLED\n';
   md += '- Fresh JSON verification: PASS\n';
   md += '- Worker clean shutdown: PASS\n';
-  md += '- Staging preflight: Exit Code 2, expected configuration incomplete\n\n';
+  md += `- Staging preflight: Exit Code ${preflightResult.exitCode}, ${preflightResult.classification}\n`;
+  md += `- Live status E2E: ${liveStatus?.fresh ? `${liveStatus.summary.passed} passed / ${liveStatus.summary.failed} failed` : 'missing or stale'}\n`;
+  md += `- Live metrics E2E: ${liveMetrics?.fresh ? `${liveMetrics.summary.passed} passed / ${liveMetrics.summary.failed} failed` : 'missing or stale'}\n\n`;
   md += `${statusText}\n`;
 
   if (!dryRun) {

@@ -9,7 +9,7 @@ This document describes the secrets required by the Codex Reset Notifier Worker 
 ### `ADMIN_API_TOKEN`
 
 - **Purpose**: Authenticates `/api/admin/metrics` requests.
-- **Environments**: Staging, Production.
+- **Environments**: Development, Staging, Production.
 - **Consumer**: Metrics API Routes (`metrics-routes.ts`).
 - **Never Log**: This token string must never appear in application logs or API responses.
 
@@ -20,7 +20,18 @@ This document describes the secrets required by the Codex Reset Notifier Worker 
 - **Consumer**: `ConfiguredEmailProvider` / `DeliveryDispatchService`.
 - **Never Log**: The key must never be logged.
 
+### `RATE_LIMIT_SECRET`
+
+- **Purpose**: HMAC key for privacy-preserving subscription rate-limit identifiers.
+- **Environments**: Staging, Production.
+- **Consumer**: Subscription routes and rate-limit policy.
+- **Never Log**: This secret must never appear in logs or API responses.
+
 ## How to Set Secrets
+
+For local development, copy `packages/worker/.dev.vars.example` to
+`packages/worker/.dev.vars` and replace every example value. Wrangler loads this ignored file for
+`wrangler dev`; never commit it.
 
 Use Wrangler to inject secrets securely into Cloudflare.
 
@@ -28,7 +39,7 @@ Use Wrangler to inject secrets securely into Cloudflare.
 
 ```bash
 npx wrangler secret put ADMIN_API_TOKEN --env staging
-npx wrangler secret put EMAIL_PROVIDER_API_KEY --env staging
+npx wrangler secret put RATE_LIMIT_SECRET --env staging
 ```
 
 **For Production:**
@@ -36,6 +47,7 @@ npx wrangler secret put EMAIL_PROVIDER_API_KEY --env staging
 ```bash
 npx wrangler secret put ADMIN_API_TOKEN --env production
 npx wrangler secret put EMAIL_PROVIDER_API_KEY --env production
+npx wrangler secret put RATE_LIMIT_SECRET --env production
 ```
 
 ## How to Verify Secrets

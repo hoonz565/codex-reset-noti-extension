@@ -1,45 +1,67 @@
 {
-  "numTotalTestSuites": 12,
-  "numPassedTestSuites": 12,
+  "numTotalTestSuites": 14,
+  "numPassedTestSuites": 14,
   "numFailedTestSuites": 0,
   "numPendingTestSuites": 0,
-  "numTotalTests": 33,
-  "numPassedTests": 33,
+  "numTotalTests": 44,
+  "numPassedTests": 44,
   "numFailedTests": 0,
   "numPendingTests": 0,
   "numTodoTests": 0,
-  "startTime": 1784711073830,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1786975234691,
   "success": true,
   "testResults": [
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "events types"],
-          "fullName": " events types SubscriberEventType contains exactly PROBABILITY_REACHED_70 and RESET_ANNOUNCED",
+          "ancestorTitles": ["events types"],
+          "fullName": "events types SubscriberEventType contains exactly PROBABILITY_REACHED_70 and RESET_ANNOUNCED",
           "status": "passed",
           "title": "SubscriberEventType contains exactly PROBABILITY_REACHED_70 and RESET_ANNOUNCED",
-          "duration": 2,
-          "failureMessages": []
+          "duration": 2.4156000000000404,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "events types"],
-          "fullName": " events types RESET_COMPLETED is operational, not subscriber-facing",
+          "ancestorTitles": ["events types"],
+          "fullName": "events types RESET_COMPLETED is operational, not subscriber-facing",
           "status": "passed",
           "title": "RESET_COMPLETED is operational, not subscriber-facing",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.2675000000000409,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "events types"],
-          "fullName": " events types Threshold payload preserves threshold=70 and currentProbability=95",
+          "ancestorTitles": ["events types"],
+          "fullName": "events types Threshold payload preserves threshold=70 and currentProbability=95",
           "status": "passed",
           "title": "Threshold payload preserves threshold=70 and currentProbability=95",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.2803000000000111,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074521,
-      "endTime": 1784711074523,
+      "startTime": 1786975235767,
+      "endTime": 1786975235770.2803,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/event-types.test.ts"
@@ -47,16 +69,18 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "AdminMetricsResponseSchema"],
-          "fullName": " AdminMetricsResponseSchema validates a complete response correctly",
+          "ancestorTitles": ["AdminMetricsResponseSchema"],
+          "fullName": "AdminMetricsResponseSchema validates a complete response correctly",
           "status": "passed",
           "title": "validates a complete response correctly",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 7.864599999999882,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074563,
-      "endTime": 1784711074567,
+      "startTime": 1786975235838,
+      "endTime": 1786975235845.8645,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/metrics-schema.test.ts"
@@ -64,48 +88,58 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "PublicResetStatusSchema"],
-          "fullName": " PublicResetStatusSchema validates empty state correctly",
+          "ancestorTitles": ["PublicResetStatusSchema"],
+          "fullName": "PublicResetStatusSchema validates empty state correctly",
           "status": "passed",
           "title": "validates empty state correctly",
-          "duration": 3,
-          "failureMessages": []
+          "duration": 6.200700000000097,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "PublicResetStatusSchema"],
-          "fullName": " PublicResetStatusSchema validates fresh state correctly",
+          "ancestorTitles": ["PublicResetStatusSchema"],
+          "fullName": "PublicResetStatusSchema validates fresh state correctly",
           "status": "passed",
           "title": "validates fresh state correctly",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 2.34479999999985,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "PublicResetStatusSchema"],
-          "fullName": " PublicResetStatusSchema validates stale state correctly",
+          "ancestorTitles": ["PublicResetStatusSchema"],
+          "fullName": "PublicResetStatusSchema validates stale state correctly",
           "status": "passed",
           "title": "validates stale state correctly",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.8243999999999687,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "PublicResetStatusSchema"],
-          "fullName": " PublicResetStatusSchema validates unavailable state correctly",
+          "ancestorTitles": ["PublicResetStatusSchema"],
+          "fullName": "PublicResetStatusSchema validates unavailable state correctly",
           "status": "passed",
           "title": "validates unavailable state correctly",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.5825999999999567,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "PublicResetStatusSchema"],
-          "fullName": " PublicResetStatusSchema rejects invalid combinations",
+          "ancestorTitles": ["PublicResetStatusSchema"],
+          "fullName": "PublicResetStatusSchema rejects invalid combinations",
           "status": "passed",
           "title": "rejects invalid combinations",
-          "duration": 2,
-          "failureMessages": []
+          "duration": 3.4532000000001517,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074555,
-      "endTime": 1784711074561,
+      "startTime": 1786975235823,
+      "endTime": 1786975235836.4531,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/status-schema-phase8.test.ts"
@@ -113,88 +147,108 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema Valid persisted CodexResetStatus passes",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema Valid persisted CodexResetStatus passes",
           "status": "passed",
           "title": "Valid persisted CodexResetStatus passes",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 7.259900000000016,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema Persisted status with checkedAt=null fails",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema Persisted status with checkedAt=null fails",
           "status": "passed",
           "title": "Persisted status with checkedAt=null fails",
-          "duration": 2,
-          "failureMessages": []
+          "duration": 2.96770000000015,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema Cold-start PublicStatusResponse with status=null passes",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema Cold-start PublicStatusResponse with status=null passes",
           "status": "passed",
           "title": "Cold-start PublicStatusResponse with status=null passes",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 1.244399999999814,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema Unknown public status fields are handled according to strictness policy",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema Unknown public status fields are handled according to strictness policy",
           "status": "passed",
           "title": "Unknown public status fields are handled according to strictness policy",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.0489000000000033,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema Raw source response permits additional upstream fields",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema Raw source response permits additional upstream fields",
           "status": "passed",
           "title": "Raw source response permits additional upstream fields",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.5639000000001033,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema probability below 0 is rejected",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema probability below 0 is rejected",
           "status": "passed",
           "title": "probability below 0 is rejected",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.7963999999999487,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema probability above 100 is rejected",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema probability above 100 is rejected",
           "status": "passed",
           "title": "probability above 100 is rejected",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.8106999999999971,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema NaN or Infinity probability is rejected",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema NaN or Infinity probability is rejected",
           "status": "passed",
           "title": "NaN or Infinity probability is rejected",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.12929999999983,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema invalid timestamp is rejected",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema invalid timestamp is rejected",
           "status": "passed",
           "title": "invalid timestamp is rejected",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 1.108199999999897,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "status.schema"],
-          "fullName": " status.schema probability=100 does not infer announced (passes validation with lifecycle=none)",
+          "ancestorTitles": ["status.schema"],
+          "fullName": "status.schema probability=100 does not infer announced (passes validation with lifecycle=none)",
           "status": "passed",
           "title": "probability=100 does not infer announced (passes validation with lifecycle=none)",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.983600000000024,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074572,
-      "endTime": 1784711074584,
+      "startTime": 1786975235851,
+      "endTime": 1786975235870.9836,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/status-schema.test.ts"
@@ -202,48 +256,58 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "subscription.schema"],
-          "fullName": " subscription.schema Valid two-alert preferences pass",
+          "ancestorTitles": ["subscription.schema"],
+          "fullName": "subscription.schema Valid two-alert preferences pass",
           "status": "passed",
           "title": "Valid two-alert preferences pass",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 5.747000000000071,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "subscription.schema"],
-          "fullName": " subscription.schema Both alert preferences false fail",
+          "ancestorTitles": ["subscription.schema"],
+          "fullName": "subscription.schema Both alert preferences false fail",
           "status": "passed",
           "title": "Both alert preferences false fail",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.4659999999998945,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "subscription.schema"],
-          "fullName": " subscription.schema probability90 is rejected",
+          "ancestorTitles": ["subscription.schema"],
+          "fullName": "subscription.schema probability90 is rejected",
           "status": "passed",
           "title": "probability90 is rejected",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.1450999999999567,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "subscription.schema"],
-          "fullName": " subscription.schema resetCompleted is rejected",
+          "ancestorTitles": ["subscription.schema"],
+          "fullName": "subscription.schema resetCompleted is rejected",
           "status": "passed",
           "title": "resetCompleted is rejected",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.7672999999999774,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "subscription.schema"],
-          "fullName": " subscription.schema createSubscriptionRequestSchema validates email and preferences",
+          "ancestorTitles": ["subscription.schema"],
+          "fullName": "subscription.schema createSubscriptionRequestSchema validates email and preferences",
           "status": "passed",
           "title": "createSubscriptionRequestSchema validates email and preferences",
-          "duration": 2,
-          "failureMessages": []
+          "duration": 2.0739000000000942,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074575,
-      "endTime": 1784711074583,
+      "startTime": 1786975235839,
+      "endTime": 1786975235850.074,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/subscription-schema.test.ts"
@@ -251,80 +315,217 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects exit code 1 with all tests recorded PASS",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-PACKAGE-1: Production ZIP excludes tests, source maps, and development files.",
           "status": "passed",
-          "title": "rejects exit code 1 with all tests recorded PASS",
-          "duration": 4,
-          "failureMessages": []
+          "title": "REL-PACKAGE-1: Production ZIP excludes tests, source maps, and development files.",
+          "duration": 26.73540000000048,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects exit code 137 or forced termination",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-PACKAGE-2: Production packaging produces a validated ZIP and SHA-256 checksum.",
           "status": "passed",
-          "title": "rejects exit code 137 or forced termination",
-          "duration": 2,
-          "failureMessages": []
+          "title": "REL-PACKAGE-2: Production packaging produces a validated ZIP and SHA-256 checksum.",
+          "duration": 712.8207000000002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects unexpected Worker shutdown text in stdout or stderr",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-BOUNDARY-1: Extension ZIP contains no upstream source URL.",
           "status": "passed",
-          "title": "rejects unexpected Worker shutdown text in stdout or stderr",
-          "duration": 3,
-          "failureMessages": []
+          "title": "REL-BOUNDARY-1: Extension ZIP contains no upstream source URL.",
+          "duration": 4.583099999999831,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects unhandled rejection with numFailedTests 0",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-BOUNDARY-2: Extension ZIP contains no localhost.",
           "status": "passed",
-          "title": "rejects unhandled rejection with numFailedTests 0",
-          "duration": 4,
-          "failureMessages": []
+          "title": "REL-BOUNDARY-2: Extension ZIP contains no localhost.",
+          "duration": 5.036799999999857,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects missing JSON file",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-BOUNDARY-3: Production ZIP contains no staging Worker URL.",
           "status": "passed",
-          "title": "rejects missing JSON file",
-          "duration": 2,
-          "failureMessages": []
+          "title": "REL-BOUNDARY-3: Production ZIP contains no staging Worker URL.",
+          "duration": 2.5820999999996275,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects stale JSON file",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-BOUNDARY-4: Extension requests only configured Worker.",
           "status": "passed",
-          "title": "rejects stale JSON file",
-          "duration": 3,
-          "failureMessages": []
+          "title": "REL-BOUNDARY-4: Extension requests only configured Worker.",
+          "duration": 3.317599999999402,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects malformed JSON content",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package REL-SEC-2: Extension package contains no secrets or admin tokens.",
           "status": "passed",
-          "title": "rejects malformed JSON content",
-          "duration": 5,
-          "failureMessages": []
+          "title": "REL-SEC-2: Extension package contains no secrets or admin tokens.",
+          "duration": 2.8702000000002954,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation rejects inconsistent passed-test totals",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package rejects unsafe package API origin \"\"",
           "status": "passed",
-          "title": "rejects inconsistent passed-test totals",
-          "duration": 5,
-          "failureMessages": []
+          "title": "rejects unsafe package API origin \"\"",
+          "duration": 177.76069999999982,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Orchestrator Failure Integrity Validation"],
-          "fullName": " Orchestrator Failure Integrity Validation accepts valid fixture when exit code is 0 and JSON verification passes",
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package rejects unsafe package API origin \"http://localhost:8787\"",
           "status": "passed",
-          "title": "accepts valid fixture when exit code is 0 and JSON verification passes",
-          "duration": 6,
-          "failureMessages": []
+          "title": "rejects unsafe package API origin \"http://localhost:8787\"",
+          "duration": 198.1156000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package rejects unsafe package API origin \"https://codex-reset-notifier-staging.example.workers.dev\"",
+          "status": "passed",
+          "title": "rejects unsafe package API origin \"https://codex-reset-notifier-staging.example.workers.dev\"",
+          "duration": 192.82639999999992,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Phase 9 extension release package"],
+          "fullName": "Phase 9 extension release package rejects unsafe package API origin \"https://willcodexquotareset.com\"",
+          "status": "passed",
+          "title": "rejects unsafe package API origin \"https://willcodexquotareset.com\"",
+          "duration": 207.51670000000013,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711074518,
-      "endTime": 1784711074552,
+      "startTime": 1786975238958,
+      "endTime": 1786975240494.5166,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/shared/tests/release/extension-packaging.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects exit code 1 with all tests recorded PASS",
+          "status": "passed",
+          "title": "rejects exit code 1 with all tests recorded PASS",
+          "duration": 7.1259000000000015,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects exit code 137 or forced termination",
+          "status": "passed",
+          "title": "rejects exit code 137 or forced termination",
+          "duration": 3.93100000000004,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects unexpected Worker shutdown text in stdout or stderr",
+          "status": "passed",
+          "title": "rejects unexpected Worker shutdown text in stdout or stderr",
+          "duration": 3.991399999999885,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects unhandled rejection with numFailedTests 0",
+          "status": "passed",
+          "title": "rejects unhandled rejection with numFailedTests 0",
+          "duration": 8.189200000000028,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects missing JSON file",
+          "status": "passed",
+          "title": "rejects missing JSON file",
+          "duration": 2.300799999999981,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects stale JSON file",
+          "status": "passed",
+          "title": "rejects stale JSON file",
+          "duration": 3.4590999999998076,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects malformed JSON content",
+          "status": "passed",
+          "title": "rejects malformed JSON content",
+          "duration": 7.702800000000025,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation rejects inconsistent passed-test totals",
+          "status": "passed",
+          "title": "rejects inconsistent passed-test totals",
+          "duration": 6.570500000000038,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Orchestrator Failure Integrity Validation"],
+          "fullName": "Orchestrator Failure Integrity Validation accepts valid fixture when exit code is 0 and JSON verification passes",
+          "status": "passed",
+          "title": "accepts valid fixture when exit code is 0 and JSON verification passes",
+          "duration": 6.295799999999872,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1786975235805,
+      "endTime": 1786975235855.296,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/shared/tests/release/orchestrator-verification.test.ts"

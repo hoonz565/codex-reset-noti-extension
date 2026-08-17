@@ -139,7 +139,32 @@ describe('Phase 4 - EV-SVC and EV-PROB/ANN/PREC', () => {
   });
 
   test('EV-SVC-5: precedence at service level', async () => {
-    expect(true).toBe(true);
+    await insertSnap('snap:svc:precedence:prior', 'cycle:svc', 60, 'none', 'healthy');
+    const status = baseStatus(75, 'healthy');
+    status.lifecycle = 'announced';
+    await insertSnap('snap:svc:precedence', 'cycle:svc', 75, 'announced', 'healthy');
+
+    const result = await service.process(
+      {
+        outcome: 'snapshot_processed',
+        snapshotId: 'snap:svc:precedence',
+        status,
+      },
+      new Date('2026-07-18T12:00:00Z')
+    );
+    const events = await db
+      .prepare('SELECT type FROM reset_events WHERE reset_cycle_id = ?')
+      .bind('cycle:svc')
+      .all<{ type: string }>();
+
+    expect(result.outcome).toBe('event_created');
+    expect(events.results.map((event) => event.type)).toEqual(['RESET_ANNOUNCED']);
+    const suppression = await db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM audit_events WHERE type = 'EVENT_CANDIDATES_SUPPRESSED'"
+      )
+      .first<{ count: number }>();
+    expect(suppression?.count).toBe(1);
   });
 
   test('EV-SVC-6: unavailable is ineligible', async () => {

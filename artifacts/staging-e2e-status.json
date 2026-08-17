@@ -1,36 +1,70 @@
 {
-  "runAt": "2026-07-22T09:29:04.731Z",
-  "stagingUrl": "https://codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
-  "stagingOrigin": "chrome-extension://staging-extension-id-placeholder",
+  "runAt": "2026-08-17T13:47:37.155Z",
+  "stagingUrl": "https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev",
+  "stagingOrigin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
   "corsNote": "Contract verification only — real Chrome extension origin NOT VERIFIED. Blocking input: actual staging extension ID.",
   "tests": [
     {
-      "name": "GET /api/status",
-      "result": "FAIL",
-      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
-      "evidence": {}
+      "name": "GET /api/status — HTTP 200, schema, keys, no PII, Cache-Control",
+      "result": "PASS",
+      "evidence": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "public, max-age=30, stale-while-revalidate=60",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c921c15977fd38-SIN",
+          "date": "Mon, 17 Aug 2026 13:47:39 GMT"
+        },
+        "schemaVersion": 1,
+        "statusState": "empty",
+        "cacheControl": "public, max-age=30, stale-while-revalidate=60",
+        "corsHeader": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc"
+      }
     },
     {
-      "name": "OPTIONS /api/status",
-      "result": "FAIL",
-      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
-      "evidence": {}
+      "name": "OPTIONS /api/status — HTTP 204, CORS headers present",
+      "result": "PASS",
+      "evidence": {
+        "status": 204,
+        "headers": {
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "access-control-allow-methods": "GET, OPTIONS",
+          "access-control-allow-headers": "Authorization, Content-Type",
+          "vary": "Origin",
+          "cf-ray": "a2c921c2bf13fd38-SIN",
+          "date": "Mon, 17 Aug 2026 13:47:39 GMT"
+        }
+      }
     },
     {
-      "name": "GET /api/status forbidden origin",
-      "result": "FAIL",
-      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
-      "evidence": {}
+      "name": "GET /api/status forbidden origin — HTTP 403 rejected",
+      "result": "PASS",
+      "evidence": {
+        "status": 403,
+        "headers": {
+          "content-type": "text/plain;charset=UTF-8",
+          "cf-ray": "a2c921c3590efd38-SIN",
+          "date": "Mon, 17 Aug 2026 13:47:39 GMT"
+        }
+      }
     },
     {
-      "name": "POST /api/status",
-      "result": "FAIL",
-      "reason": "getaddrinfo ENOTFOUND codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev",
-      "evidence": {}
+      "name": "POST /api/status — HTTP 405 method not allowed",
+      "result": "PASS",
+      "evidence": {
+        "status": 405,
+        "headers": {
+          "content-type": "text/plain;charset=UTF-8",
+          "cf-ray": "a2c921c3db1ffd38-SIN",
+          "date": "Mon, 17 Aug 2026 13:47:39 GMT"
+        }
+      }
     }
   ],
   "summary": {
-    "passed": 0,
-    "failed": 4
+    "passed": 4,
+    "failed": 0
   }
 }

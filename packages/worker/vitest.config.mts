@@ -8,11 +8,7 @@ export default defineConfig({
     }),
   ],
   test: {
-    poolOptions: {
-      workers: {
-        // Resource-control decision: singleWorker prevents concurrent D1 database isolation conflicts
-        singleWorker: true,
-      },
-    },
+    // Resource-control decision: one worker prevents concurrent D1 database conflicts.
+    maxWorkers: 1,
   },
 });

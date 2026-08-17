@@ -1,37 +1,57 @@
 {
-  "numTotalTestSuites": 10,
-  "numPassedTestSuites": 10,
+  "numTotalTestSuites": 12,
+  "numPassedTestSuites": 12,
   "numFailedTestSuites": 0,
   "numPendingTestSuites": 0,
-  "numTotalTests": 32,
-  "numPassedTests": 32,
+  "numTotalTests": 38,
+  "numPassedTests": 38,
   "numFailedTests": 0,
   "numPendingTests": 0,
   "numTodoTests": 0,
-  "startTime": 1784711131740,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1786975329306,
   "success": true,
   "testResults": [
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "Extension Manifest"],
-          "fullName": " Extension Manifest Manifest uses MV3",
+          "ancestorTitles": ["Extension Manifest"],
+          "fullName": "Extension Manifest Manifest uses MV3",
           "status": "passed",
           "title": "Manifest uses MV3",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 2.9979999999999905,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Extension Manifest"],
-          "fullName": " Extension Manifest No source-site host permission exists",
+          "ancestorTitles": ["Extension Manifest"],
+          "fullName": "Extension Manifest No source-site host permission exists",
           "status": "passed",
           "title": "No source-site host permission exists",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.41660000000001673,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711132553,
-      "endTime": 1784711132555,
+      "startTime": 1786975329754,
+      "endTime": 1786975329758.4165,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/extension/tests/manifest.test.ts"
@@ -39,16 +59,38 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "Extension UI and Client"],
-          "fullName": " Extension UI and Client Exactly two subscription options exist",
+          "ancestorTitles": ["Extension UI and Client"],
+          "fullName": "Extension UI and Client Exactly two subscription options exist",
           "status": "passed",
           "title": "Exactly two subscription options exist",
-          "duration": 200,
-          "failureMessages": []
+          "duration": 249.24529999999868,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Extension UI and Client"],
+          "fullName": "Extension UI and Client uses production copy and never pre-populates a test email",
+          "status": "passed",
+          "title": "uses production copy and never pre-populates a test email",
+          "duration": 32.37540000000081,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["Extension UI and Client"],
+          "fullName": "Extension UI and Client offers a management-link request with accessible live status regions",
+          "status": "passed",
+          "title": "offers a management-link request with accessible live status regions",
+          "duration": 22.519499999998516,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711134795,
-      "endTime": 1784711134995,
+      "startTime": 1786975350677,
+      "endTime": 1786975350981.5195,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/extension/tests/popup.test.ts"
@@ -56,96 +98,118 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-1: only Worker /api/status is requested",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-1: only Worker /api/status is requested",
           "status": "passed",
           "title": "DASH-CLIENT-1: only Worker /api/status is requested",
-          "duration": 9,
-          "failureMessages": []
+          "duration": 9.823600000000056,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-2: upstream source is never requested",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-2: upstream source is never requested",
           "status": "passed",
           "title": "DASH-CLIENT-2: upstream source is never requested",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.7416000000000622,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-3: valid response runtime-validates",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-3: valid response runtime-validates",
           "status": "passed",
           "title": "DASH-CLIENT-3: valid response runtime-validates",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 1.1326999999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-4: invalid schema maps to typed error",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-4: invalid schema maps to typed error",
           "status": "passed",
           "title": "DASH-CLIENT-4: invalid schema maps to typed error",
-          "duration": 3,
-          "failureMessages": []
+          "duration": 3.0237999999999374,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-5: network failure maps to typed error",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-5: network failure maps to typed error",
           "status": "passed",
           "title": "DASH-CLIENT-5: network failure maps to typed error",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.9724999999999682,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-6: timeout aborts safely",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-6: timeout aborts safely",
           "status": "passed",
           "title": "DASH-CLIENT-6: timeout aborts safely",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 5.429700000000025,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-7: concurrent calls reuse the in-flight promise",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-7: concurrent calls reuse the in-flight promise",
           "status": "passed",
           "title": "DASH-CLIENT-7: concurrent calls reuse the in-flight promise",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.7337999999999738,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient DASH-CLIENT-8: no response body, token or secret is logged",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient DASH-CLIENT-8: no response body, token or secret is logged",
           "status": "passed",
           "title": "DASH-CLIENT-8: no response body, token or secret is logged",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.790300000000002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient CLIENT-EXTRA-1: handles non-200 responses gracefully",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient CLIENT-EXTRA-1: handles non-200 responses gracefully",
           "status": "passed",
           "title": "CLIENT-EXTRA-1: handles non-200 responses gracefully",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.7335000000000491,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient CLIENT-EXTRA-2: clears in-flight promise after resolution",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient CLIENT-EXTRA-2: clears in-flight promise after resolution",
           "status": "passed",
           "title": "CLIENT-EXTRA-2: clears in-flight promise after resolution",
-          "duration": 1,
-          "failureMessages": []
+          "duration": 0.7919000000000551,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusClient"],
-          "fullName": " StatusClient CLIENT-EXTRA-3: handles malformed JSON response",
+          "ancestorTitles": ["StatusClient"],
+          "fullName": "StatusClient CLIENT-EXTRA-3: handles malformed JSON response",
           "status": "passed",
           "title": "CLIENT-EXTRA-3: handles malformed JSON response",
-          "duration": 0,
-          "failureMessages": []
+          "duration": 0.6308999999999969,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711132734,
-      "endTime": 1784711132756,
+      "startTime": 1786975329930,
+      "endTime": 1786975329956.6309,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/extension/tests/status-client.test.ts"
@@ -153,72 +217,88 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-1: semantic heading",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-1: semantic heading",
           "status": "passed",
           "title": "DASH-A11Y-1: semantic heading",
-          "duration": 26,
-          "failureMessages": []
+          "duration": 43.2567999999992,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-2: readable non-color-only badge",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-2: readable non-color-only badge",
           "status": "passed",
           "title": "DASH-A11Y-2: readable non-color-only badge",
-          "duration": 8,
-          "failureMessages": []
+          "duration": 48.1688000000031,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-3: keyboard-accessible refresh control",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-3: keyboard-accessible refresh control",
           "status": "passed",
           "title": "DASH-A11Y-3: keyboard-accessible refresh control",
-          "duration": 102,
-          "failureMessages": []
+          "duration": 100.71880000000237,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-4: accessible loading text",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-4: accessible loading text",
           "status": "passed",
           "title": "DASH-A11Y-4: accessible loading text",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 7.0777000000016415,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-5: screen-reader distinction between error and unavailable",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-5: screen-reader distinction between error and unavailable",
           "status": "passed",
           "title": "DASH-A11Y-5: screen-reader distinction between error and unavailable",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 7.846199999999953,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard DASH-A11Y-6: accessible absolute timestamp for relative time",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard DASH-A11Y-6: accessible absolute timestamp for relative time",
           "status": "passed",
           "title": "DASH-A11Y-6: accessible absolute timestamp for relative time",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 5.9047000000027765,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard A11Y-EXTRA-1: includes aria-live=\"polite\" region",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard A11Y-EXTRA-1: includes aria-live=\"polite\" region",
           "status": "passed",
           "title": "A11Y-EXTRA-1: includes aria-live=\"polite\" region",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 6.619700000002922,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "StatusDashboard"],
-          "fullName": " StatusDashboard A11Y-EXTRA-2: refresh button has focus-visible styling hooks",
+          "ancestorTitles": ["StatusDashboard"],
+          "fullName": "StatusDashboard A11Y-EXTRA-2: refresh button has focus-visible styling hooks",
           "status": "passed",
           "title": "A11Y-EXTRA-2: refresh button has focus-visible styling hooks",
-          "duration": 2,
-          "failureMessages": []
+          "duration": 3.077499999999418,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711135408,
-      "endTime": 1784711135565,
+      "startTime": 1786975359882,
+      "endTime": 1786975360105.0774,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/extension/tests/status-dashboard.test.ts"
@@ -226,91 +306,160 @@
     {
       "assertionResults": [
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-1: loading exclusive - loading state is visually exclusive",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-1: loading exclusive - loading state is visually exclusive",
           "status": "passed",
           "title": "DASH-VIEW-1: loading exclusive - loading state is visually exclusive",
-          "duration": 30,
-          "failureMessages": []
+          "duration": 47.28050000000076,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-2: fresh probability - fresh probability is accurately presented",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-2: fresh probability - fresh probability is accurately presented",
           "status": "passed",
           "title": "DASH-VIEW-2: fresh probability - fresh probability is accurately presented",
-          "duration": 34,
-          "failureMessages": []
+          "duration": 43.33439999999973,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-3: stale label - stale probability is presented with a stale label",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-3: stale label - stale probability is presented with a stale label",
           "status": "passed",
           "title": "DASH-VIEW-3: stale label - stale probability is presented with a stale label",
-          "duration": 6,
-          "failureMessages": []
+          "duration": 8.523799999999028,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-4: unavailable không giả fresh - unavailable does not pretend to be fresh",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-4: unavailable không giả fresh - unavailable does not pretend to be fresh",
           "status": "passed",
           "title": "DASH-VIEW-4: unavailable không giả fresh - unavailable does not pretend to be fresh",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 6.9112999999997555,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-5: announcement copy precedence - announcement copy takes visual precedence over probability",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-5: announcement copy precedence - announcement copy takes visual precedence over probability",
           "status": "passed",
           "title": "DASH-VIEW-5: announcement copy precedence - announcement copy takes visual precedence over probability",
-          "duration": 3,
-          "failureMessages": []
+          "duration": 5.600800000000163,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-6: 100% không suy ra announced - 100% probability does not infer announced state",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-6: 100% không suy ra announced - 100% probability does not infer announced state",
           "status": "passed",
           "title": "DASH-VIEW-6: 100% không suy ra announced - 100% probability does not infer announced state",
-          "duration": 3,
-          "failureMessages": []
+          "duration": 4.664699999997538,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-7: empty khác unavailable - empty state is visually distinct from unavailable state",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-7: empty khác unavailable - empty state is visually distinct from unavailable state",
           "status": "passed",
           "title": "DASH-VIEW-7: empty khác unavailable - empty state is visually distinct from unavailable state",
-          "duration": 3,
-          "failureMessages": []
+          "duration": 6.33259999999791,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-8: API error khác source unavailable - API error is visually distinct from source unavailable",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-8: API error khác source unavailable - API error is visually distinct from source unavailable",
           "status": "passed",
           "title": "DASH-VIEW-8: API error khác source unavailable - API error is visually distinct from source unavailable",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 5.796200000000681,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-9: invalid timestamp không crash - invalid timestamp does not crash the UI",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-9: invalid timestamp không crash - invalid timestamp does not crash the UI",
           "status": "passed",
           "title": "DASH-VIEW-9: invalid timestamp không crash - invalid timestamp does not crash the UI",
-          "duration": 5,
-          "failureMessages": []
+          "duration": 6.4628000000011525,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         },
         {
-          "ancestorTitles": ["", "Status View Presentation (DASH-VIEW-1..10)"],
-          "fullName": " Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-10: refresh giữ prior state - refreshing preserves prior state visually",
+          "ancestorTitles": ["Status View Presentation (DASH-VIEW-1..10)"],
+          "fullName": "Status View Presentation (DASH-VIEW-1..10) DASH-VIEW-10: refresh giữ prior state - refreshing preserves prior state visually",
           "status": "passed",
           "title": "DASH-VIEW-10: refresh giữ prior state - refreshing preserves prior state visually",
-          "duration": 4,
-          "failureMessages": []
+          "duration": 6.311299999997573,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
         }
       ],
-      "startTime": 1784711134983,
-      "endTime": 1784711135081,
+      "startTime": 1786975351027,
+      "endTime": 1786975351169.3113,
       "status": "passed",
       "message": "",
       "name": "D:/codex-reset/packages/extension/tests/status-view-model.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["SubscriptionClient"],
+          "fullName": "SubscriptionClient accepts the privacy-preserving 202 response without expecting subscriber data",
+          "status": "passed",
+          "title": "accepts the privacy-preserving 202 response without expecting subscriber data",
+          "duration": 47.44119999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["SubscriptionClient"],
+          "fullName": "SubscriptionClient rejects malformed successful responses",
+          "status": "passed",
+          "title": "rejects malformed successful responses",
+          "duration": 2.6448999999998932,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["SubscriptionClient"],
+          "fullName": "SubscriptionClient surfaces sanitized API errors",
+          "status": "passed",
+          "title": "surfaces sanitized API errors",
+          "duration": 1.9429999999999836,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": ["SubscriptionClient"],
+          "fullName": "SubscriptionClient requests a management link through the generic accepted contract",
+          "status": "passed",
+          "title": "requests a management link through the generic accepted contract",
+          "duration": 1.225999999999999,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1786975329931,
+      "endTime": 1786975329984.226,
+      "status": "passed",
+      "message": "",
+      "name": "D:/codex-reset/packages/extension/tests/subscription-client.test.ts"
     }
   ]
 }

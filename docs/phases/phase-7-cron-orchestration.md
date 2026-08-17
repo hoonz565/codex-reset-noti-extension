@@ -44,15 +44,16 @@ Configure the Worker Cron trigger to execute source checks, persist snapshots, i
 
 ## 9. Current status
 
-PLANNED
+APPROVED
 
 ## 10. Suggested Git branch
 
-`phase-7-cron-orchestration`
+`phase-7-orchestration-cron`
 
 ## 11. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `394fbaf` (`feat: implement Phase 7 cron orchestration`).
+- Regression evidence: [Phase 9 verification report](../../phase-9-report.md).
 
 ## 12. Risks and unresolved questions
 

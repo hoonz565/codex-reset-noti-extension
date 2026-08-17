@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-undef, @typescript-eslint/no-require-imports */
 /**
  * verify-staging-metrics-e2e.cjs
  *
@@ -22,8 +23,10 @@ const fs = require('fs');
 const path = require('path');
 
 const STAGING_URL =
-  'https://codex-reset-notifier-staging.nguyenminhheng05062005.workers.dev';
-const STAGING_ORIGIN = 'chrome-extension://staging-extension-id-placeholder';
+  process.env.STAGING_WORKER_URL ||
+  'https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev';
+const STAGING_ORIGIN =
+  process.env.STAGING_EXTENSION_ORIGIN || 'chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc';
 const ARTIFACTS_DIR = path.join(__dirname, '..', 'artifacts');
 
 // Read the bearer token from env — never print it
@@ -34,8 +37,13 @@ if (!BEARER) {
 }
 
 const FORBIDDEN_RESPONSE_KEYS = [
-  'subscribers', 'email', 'token', 'apiKey', 'secret',
-  'rawUpstream', 'provider', 'address',
+  'subscribers',
+  'email',
+  'token',
+  'apikey',
+  'secret',
+  'rawupstream',
+  'address',
 ];
 
 function fetch(url, options = {}) {
@@ -50,7 +58,9 @@ function fetch(url, options = {}) {
     };
     const req = https.request(reqOptions, (res) => {
       let body = '';
-      res.on('data', (chunk) => { body += chunk; });
+      res.on('data', (chunk) => {
+        body += chunk;
+      });
       res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body }));
     });
     req.on('error', reject);
@@ -62,9 +72,16 @@ function fetch(url, options = {}) {
 function sanitizeHeaders(headers) {
   const safe = {};
   const ALLOWED = [
-    'content-type', 'cache-control', 'access-control-allow-origin',
-    'access-control-allow-methods', 'www-authenticate', 'vary',
-    'cf-ray', 'cf-cache-status', 'date', 'allow',
+    'content-type',
+    'cache-control',
+    'access-control-allow-origin',
+    'access-control-allow-methods',
+    'www-authenticate',
+    'vary',
+    'cf-ray',
+    'cf-cache-status',
+    'date',
+    'allow',
   ];
   for (const h of ALLOWED) if (headers[h]) safe[h] = headers[h];
   return safe;
@@ -75,7 +92,8 @@ function checkForbiddenKeys(obj, keyPath = '') {
   if (typeof obj !== 'object' || obj === null) return found;
   for (const key of Object.keys(obj)) {
     const full = keyPath ? `${keyPath}.${key}` : key;
-    if (FORBIDDEN_RESPONSE_KEYS.some(fk => key.toLowerCase().includes(fk.toLowerCase()))) {
+    const lowerKey = key.toLowerCase();
+    if (FORBIDDEN_RESPONSE_KEYS.some((fk) => lowerKey === fk || lowerKey.includes(fk))) {
       found.push(full);
     }
     if (typeof obj[key] === 'object') found.push(...checkForbiddenKeys(obj[key], full));
@@ -83,14 +101,24 @@ function checkForbiddenKeys(obj, keyPath = '') {
   return found;
 }
 
-// Validate metrics response structure (without printing values)
+// Validate metrics response structure against AdminMetricsResponseSchema
 function validateMetricsResponse(json) {
   const issues = [];
   if (json.schemaVersion !== 1) issues.push(`schemaVersion expected 1, got ${json.schemaVersion}`);
   if (!json.window) issues.push('missing window');
   if (!json.generatedAt) issues.push('missing generatedAt');
-  if (!json.totals || typeof json.totals !== 'object') issues.push('missing/invalid totals');
-  if (!Array.isArray(json.eventHistory)) issues.push('missing/invalid eventHistory');
+  if (!json.orchestration || typeof json.orchestration !== 'object') {
+    issues.push('missing/invalid orchestration');
+  }
+  if (!json.source || typeof json.source !== 'object') {
+    issues.push('missing/invalid source');
+  }
+  if (!json.events || typeof json.events !== 'object') {
+    issues.push('missing/invalid events');
+  }
+  if (!json.deliveries || typeof json.deliveries !== 'object') {
+    issues.push('missing/invalid deliveries');
+  }
   const forbidden = checkForbiddenKeys(json);
   if (forbidden.length > 0) issues.push(`forbidden keys present: ${forbidden.join(', ')}`);
   return issues;
@@ -128,7 +156,9 @@ async function runTests() {
     const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status === 401) pass('Missing bearer → HTTP 401', ev);
     else fail('Missing bearer → HTTP 401', `Got ${res.status}`, ev);
-  } catch (e) { fail('Missing bearer → HTTP 401', e.message, {}); }
+  } catch (e) {
+    fail('Missing bearer → HTTP 401', e.message, {});
+  }
 
   // 2. Invalid bearer → 401
   console.log('\n=== Metrics E2E: invalid bearer → 401 ===');
@@ -139,7 +169,9 @@ async function runTests() {
     const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status === 401) pass('Invalid bearer → HTTP 401', ev);
     else fail('Invalid bearer → HTTP 401', `Got ${res.status}`, ev);
-  } catch (e) { fail('Invalid bearer → HTTP 401', e.message, {}); }
+  } catch (e) {
+    fail('Invalid bearer → HTTP 401', e.message, {});
+  }
 
   // 3. Allowed Origin alone (no bearer) → 401
   console.log('\n=== Metrics E2E: origin only, no bearer → 401 ===');
@@ -148,7 +180,9 @@ async function runTests() {
     const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status === 401) pass('Origin only, no bearer → HTTP 401', ev);
     else fail('Origin only, no bearer → HTTP 401', `Got ${res.status}`, ev);
-  } catch (e) { fail('Origin only, no bearer → HTTP 401', e.message, {}); }
+  } catch (e) {
+    fail('Origin only, no bearer → HTTP 401', e.message, {});
+  }
 
   // 4. Valid bearer → 200, validate schema, no PII
   console.log('\n=== Metrics E2E: valid bearer → 200 ===');
@@ -162,18 +196,24 @@ async function runTests() {
     const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status === 200) {
       let json;
-      try { json = JSON.parse(res.body); } catch { fail('Valid bearer → HTTP 200 JSON parse', 'Invalid JSON', ev); return; }
+      try {
+        json = JSON.parse(res.body);
+      } catch {
+        fail('Valid bearer → HTTP 200 JSON parse', 'Invalid JSON', ev);
+        return;
+      }
       const issues = validateMetricsResponse(json);
       if (issues.length > 0) fail('Valid bearer → HTTP 200 schema', issues.join('; '), ev);
       else {
         ev.schemaVersion = json.schemaVersion;
         ev.window = json.window;
-        ev.totalsKeys = Object.keys(json.totals || {});
-        ev.eventHistoryLength = (json.eventHistory || []).length;
+        ev.sections = ['orchestration', 'source', 'events', 'deliveries'];
         pass('Valid bearer → HTTP 200, schema valid, no PII', ev);
       }
     } else fail('Valid bearer → HTTP 200', `Got ${res.status}`, ev);
-  } catch (e) { fail('Valid bearer → HTTP 200', e.message, {}); }
+  } catch (e) {
+    fail('Valid bearer → HTTP 200', e.message, {});
+  }
 
   // 5. Unsupported window → 400
   console.log('\n=== Metrics E2E: unsupported window → 400 ===');
@@ -187,7 +227,9 @@ async function runTests() {
     const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
     if (res.status === 400) pass('Unsupported window → HTTP 400', ev);
     else fail('Unsupported window → HTTP 400', `Got ${res.status}`, ev);
-  } catch (e) { fail('Unsupported window → HTTP 400', e.message, {}); }
+  } catch (e) {
+    fail('Unsupported window → HTTP 400', e.message, {});
+  }
 
   // 6-8. Supported windows 1h, 24h, 7d → 200
   for (const window of ['1h', '24h', '7d']) {
@@ -202,14 +244,21 @@ async function runTests() {
       const ev = { status: res.status, headers: sanitizeHeaders(res.headers) };
       if (res.status === 200) {
         let json;
-        try { json = JSON.parse(res.body); } catch { fail(`window=${window} → HTTP 200 JSON`, 'Invalid JSON', ev); continue; }
+        try {
+          json = JSON.parse(res.body);
+        } catch {
+          fail(`window=${window} → HTTP 200 JSON`, 'Invalid JSON', ev);
+          continue;
+        }
         const issues = validateMetricsResponse(json);
         ev.schemaVersion = json.schemaVersion;
         ev.window = json.window;
         if (issues.length > 0) fail(`window=${window} → HTTP 200 schema`, issues.join('; '), ev);
         else pass(`window=${window} → HTTP 200, schema valid`, ev);
       } else fail(`window=${window} → HTTP 200`, `Got ${res.status}`, ev);
-    } catch (e) { fail(`window=${window} → HTTP 200`, e.message, {}); }
+    } catch (e) {
+      fail(`window=${window} → HTTP 200`, e.message, {});
+    }
   }
 
   fs.writeFileSync(
@@ -221,4 +270,7 @@ async function runTests() {
   if (results.summary.failed > 0) process.exit(1);
 }
 
-runTests().catch(e => { console.error(e); process.exit(1); });
+runTests().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

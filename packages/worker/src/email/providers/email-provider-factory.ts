@@ -5,14 +5,17 @@ import { ConfiguredEmailProvider } from './configured-email-provider';
 
 export function createEmailProvider(
   environment: string,
-  mailgunApiKey?: string,
-  mailgunDomain?: string
+  apiKey?: string,
+  fromAddress?: string,
+  fetchImplementation?: typeof fetch
 ): EmailProvider {
   if (environment === 'production') {
-    if (!mailgunApiKey || !mailgunDomain) {
-      throw new Error('Production environment requires MAILGUN_API_KEY and MAILGUN_DOMAIN');
+    if (!apiKey || !fromAddress) {
+      throw new Error(
+        'Production environment requires EMAIL_PROVIDER_API_KEY and EMAIL_FROM_ADDRESS'
+      );
     }
-    return new ConfiguredEmailProvider(mailgunApiKey, mailgunDomain);
+    return new ConfiguredEmailProvider(apiKey, fromAddress, fetchImplementation);
   } else if (environment === 'staging') {
     return new DisabledEmailProvider();
   } else {

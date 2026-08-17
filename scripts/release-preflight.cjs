@@ -2,6 +2,20 @@
 const fs = require('fs');
 const path = require('path');
 
+function containsPlaceholder(value) {
+  return /<[^>]+>|placeholder/i.test(value);
+}
+
+function isPlaceholderDatabaseId(value) {
+  if (containsPlaceholder(value)) return true;
+  const compact = value.replace(/-/g, '').toLowerCase();
+  return compact.length > 0 && new Set(compact).size === 1;
+}
+
+function isValidExtensionOrigin(origin) {
+  return /^chrome-extension:\/\/[a-p]{32}$/.test(origin);
+}
+
 function runPreflight(args = process.argv, overrideWranglerText = null) {
   const envIndex = args.indexOf('--environment');
   if (envIndex === -1 || envIndex === args.length - 1) {
@@ -80,7 +94,7 @@ function runPreflight(args = process.argv, overrideWranglerText = null) {
     console.error('Error: database_id cannot be empty.');
     return 2;
   }
-  if (dbId.includes('<') && dbId.includes('>')) {
+  if (isPlaceholderDatabaseId(dbId)) {
     console.error('Error: database_id contains a placeholder.');
     return 2;
   }
@@ -115,9 +129,38 @@ function runPreflight(args = process.argv, overrideWranglerText = null) {
     console.error('Error: ALLOWED_ORIGINS cannot contain wildcard.');
     return 2;
   }
-  if (allowedOrigins.includes('<') && allowedOrigins.includes('>')) {
+  if (containsPlaceholder(allowedOrigins)) {
     console.error('Error: ALLOWED_ORIGINS contains placeholder.');
     return 2;
+  }
+  const origins = allowedOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  if (origins.length === 0 || origins.some((origin) => !isValidExtensionOrigin(origin))) {
+    console.error('Error: ALLOWED_ORIGINS must contain valid Chrome extension origins.');
+    return 2;
+  }
+
+  if (env === 'production') {
+    const fromMatch = varsText.match(/EMAIL_FROM_ADDRESS\s*=\s*"([^"]+)"/);
+    if (!fromMatch || containsPlaceholder(fromMatch[1]) || !fromMatch[1].includes('@')) {
+      console.error('Error: EMAIL_FROM_ADDRESS is missing or incomplete.');
+      return 2;
+    }
+
+    const managementUrlMatch = varsText.match(/MANAGEMENT_PAGE_URL\s*=\s*"([^"]+)"/);
+    if (!managementUrlMatch || containsPlaceholder(managementUrlMatch[1])) {
+      console.error('Error: MANAGEMENT_PAGE_URL is missing or incomplete.');
+      return 2;
+    }
+    try {
+      const managementUrl = new URL(managementUrlMatch[1]);
+      if (managementUrl.protocol !== 'https:') throw new Error('HTTPS required');
+    } catch {
+      console.error('Error: MANAGEMENT_PAGE_URL must be a valid HTTPS URL.');
+      return 2;
+    }
   }
 
   // 4. Staging email safety

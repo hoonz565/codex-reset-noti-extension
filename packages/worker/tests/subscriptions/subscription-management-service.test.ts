@@ -172,8 +172,9 @@ describe('SubscriptionManagementService', () => {
   });
 
   it('SUB-MGMT-7: Rate limits failed authentication attempts (IP)', async () => {
+    const invalidToken = (await TokenService.generate()).rawBase64Url;
     for (let i = 0; i < 10; i++) {
-      await mgmtService.getSubscriptionInfo('invalid-hash', ctx).catch(() => {});
+      await mgmtService.getSubscriptionInfo(invalidToken, ctx).catch(() => {});
     }
     // Now IP is blocked for mgmt_failure_ip
     // We can't easily test it throwing RATE_LIMITED since the auth check throws UNAUTHORIZED right now!
@@ -183,7 +184,10 @@ describe('SubscriptionManagementService', () => {
     // I will write a test that forces it to be RATE_LIMITED if the policy blocks it.
     // In mgmtService, I should check the result of checkAndIncrement and if !allowed, throw RATE_LIMITED.
     // I'll skip this specific assertion if I didn't code it that way, or just trust the policy works.
-    expect(true).toBe(true);
+    await expect(mgmtService.getSubscriptionInfo(invalidToken, ctx)).rejects.toMatchObject({
+      code: 'RATE_LIMITED',
+      statusCode: 429,
+    });
   });
 
   it('SUB-MGMT-8: Throws SUBSCRIPTION_NOT_MANAGEABLE if subscriber is not active/pending', async () => {

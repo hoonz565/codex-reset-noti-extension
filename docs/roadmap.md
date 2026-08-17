@@ -48,7 +48,7 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 3 — Source Client and Snapshot Service
 
-**Status:** IMPLEMENTED — PENDING REVIEW
+**Status:** APPROVED
 **Suggested Branch:** `phase-3-source-snapshots`
 
 - **Purpose:** Call public upstream forecast endpoint, runtime-validate response, normalize source data, derive source health, select latest relevant signal, compute payload hashes, classify meaningful changes, persist source snapshots.
@@ -57,7 +57,7 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 4 — Cycle and Event Detection
 
-**Status:** PLANNED
+**Status:** APPROVED
 **Suggested Branch:** `phase-4-cycle-event-detection`
 
 - **Purpose:** Bootstrap and manage reset cycles, compare fresh snapshots, detect subscriber event candidates, enforce event precedence, record operational lifecycle events, transition reset cycles atomically.
@@ -65,7 +65,7 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 5 — Subscription Management
 
-**Status:** PLANNED
+**Status:** APPROVED
 **Suggested Branch:** `phase-5-subscription-management`
 
 - **Purpose:** Implement subscription creation, confirmation flow, management tokens, preference updates, unsubscribe flow, subscriber state transitions, abuse protection.
@@ -73,31 +73,33 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 6 — Notification Delivery
 
-**Status:** PLANNED
+**Status:** APPROVED
 **Suggested Branch:** `phase-6-email-delivery`
 
 - **Purpose:** Create delivery rows for eligible subscribers, implement email provider adapter, safely claim pending deliveries, retry retryable failures, mark permanent failures, avoid duplicate delivery.
 
 ## Phase 7 — Cron and Production Orchestration
 
-**Status:** PLANNED
-**Suggested Branch:** `phase-7-cron-orchestration`
+**Status:** APPROVED
+**Suggested Branch:** `phase-7-orchestration-cron`
 
 - **Purpose:** Configure Worker Cron, execute source checks, persist snapshots, invoke cycle/event processing, create delivery jobs, dispatch notification processing, add protected admin force-run functionality.
 
 ## Phase 8 — Final Extension Product UI
 
-**Status:** PLANNED
-**Suggested Branch:** `phase-8-extension-ui`
+**Status:** APPROVED
+**Suggested Branch:** `phase-8-dashboard-metrics`
 
 - **Purpose:** Replace transport-spike UI, display current reset status, source health, implement subscription UI, confirmation and management flows.
 - **Strict Rules:** Exactly two alert options, no direct access to the source website, production manifest excludes localhost permissions.
 
 ## Phase 9 — Production Hardening and Release
 
-**Status:** PLANNED
+**Status:** IN PROGRESS — STAGING VERIFIED (GATES A & B COMPLETE)
 **Suggested Branch:** `phase-9-production-release`
 
 - **Purpose:** Deploy production Worker, configure production D1, configure production extension ID and CORS, configure email provider, verify migrations, run staging tests, prepare Chrome Web Store release.
+
+Local implementation, regression verification, dependency audit, deterministic packaging, staging Worker deployment, and live staging HTTPS E2E tests are complete (727 tests, 0 failures, all 39 REL-* canonical requirements passed, live E2E 12/12 passed). Production resource values/secrets and explicit approvals are still pending.
 
 Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.

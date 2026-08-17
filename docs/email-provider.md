@@ -1,251 +1,113 @@
-# Email Provider Abstraction — Codex Reset Notifier
+# Email Provider — Codex Reset Notifier
 
-> **Version:** 0.6 (Product Alignment — Two-Alert MVP)  
-> **Changes from v0.5:** Removed 90% alert template, removed RESET_COMPLETED subscriber template. MVP has exactly three email categories.
+> **Version:** 1.0 (implemented contract)
 
----
+## 1. Email categories
 
-## 1. MVP Email Categories
+The MVP has four email categories but only two subscriber notification events:
 
-**Exactly three email types in MVP:**
+| Category                  | Trigger                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Subscription confirmation | A new or repeated subscription request prepares a 24-hour confirmation token |
+| Subscription management   | An existing subscriber requests a 30-day management token                    |
+| Probability reached 70%   | `PROBABILITY_REACHED_70`                                                     |
+| Reset announced           | `RESET_ANNOUNCED`                                                            |
 
-| #   | Category                  | Trigger                                   |
-| --- | ------------------------- | ----------------------------------------- |
-| 1   | Subscription confirmation | Subscriber created/re-submitted           |
-| 2   | Probability reached 70%   | `PROBABILITY_REACHED_70` subscriber event |
-| 3   | Reset announced           | `RESET_ANNOUNCED` subscriber event        |
+`PROBABILITY_REACHED_90` and subscriber-facing `RESET_COMPLETED` emails do not exist.
 
-**Deliberately excluded from MVP:**
+## 2. Provider boundary
 
-- 90% probability alert (no product alignment with source website)
-- Reset completed subscriber alert (operational event only)
-
----
-
-## 2. NotificationChannel Interface
+The production code uses one provider-neutral interface:
 
 ```typescript
-// ─── Core interfaces ─────────────────────────────────────────────
-
-interface NotificationRecipient {
-  subscriberId: string;
-  email: string; // used only for sending, never logged
-  maskedEmail: string; // for logging: "us***@gmail.com"
-  preferences: {
-    notify70: boolean;
-    notifyAnnounced: boolean;
-  };
-  unsubscribeToken: {
-    payload: string; // base64url of {subscriberId, tokenVersion}
-    signature: string; // HMAC-SHA256 signature
-  };
+interface ProviderEmailRequest {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  idempotencyKey?: string;
 }
 
-interface NotificationDelivery {
-  id: string; // ULID — the notification_deliveries.id
-  eventId: string;
-  subscriberId: string;
-  channel: 'email'; // extensible later
-  state: DeliveryState;
-  attemptCount: number;
-  nextAttemptAt: string | null;
-}
+type ProviderEmailResult =
+  | { outcome: 'accepted'; providerMessageId: string | null }
+  | { outcome: 'retryable_failure'; code: string; retryAfterSeconds: number | null }
+  | { outcome: 'permanent_failure'; code: string };
 
-type DeliveryResult =
-  | { success: true; providerMessageId: string }
-  | { success: false; retryable: boolean; errorCode: string; errorMessage: string };
-
-interface NotificationChannel {
-  readonly channel: 'email' | 'whatsapp' | 'telegram' | 'browser';
-
-  send(
-    delivery: NotificationDelivery,
-    recipient: NotificationRecipient,
-    event: ResetEvent // ResetEvent wraps SubscriberEventType
-  ): Promise<DeliveryResult>;
-}
-```
-
----
-
-## 3. EmailNotificationChannel
-
-```typescript
 interface EmailProvider {
-  sendEmail(params: {
-    to: string;
-    from: string;
-    subject: string;
-    html: string;
-    text: string;
-    headers?: Record<string, string>;
-  }): Promise<{ messageId: string }>;
-}
-
-class EmailNotificationChannel implements NotificationChannel {
-  readonly channel = 'email';
-
-  constructor(
-    private provider: EmailProvider,
-    private templates: EmailTemplates
-  ) {}
-
-  async send(delivery, recipient, event): Promise<DeliveryResult> {
-    const { subject, html, text } = this.templates.render(event, recipient);
-    try {
-      const result = await this.provider.sendEmail({
-        to: recipient.email,
-        from: 'alerts@<your-sending-domain>',
-        subject,
-        html,
-        text,
-      });
-      return { success: true, providerMessageId: result.messageId };
-    } catch (err) {
-      return classifyError(err);
-    }
-  }
+  send(input: ProviderEmailRequest): Promise<ProviderEmailResult>;
 }
 ```
 
----
+Environment selection is explicit:
 
-## 4. MVP Email Providers
+- Development/tests: `MockEmailProvider` records calls without network access.
+- Staging: `DisabledEmailProvider` sinks the intent and performs no network request.
+- Production: `ConfiguredEmailProvider` sends through Resend.
 
-### Primary: Resend
+## 3. Production Resend adapter
 
-| Property        | Value                                  |
-| --------------- | -------------------------------------- |
-| Free tier       | 3,000 emails/month, 100/day            |
-| Sender domain   | Custom domain or `@resend.dev` for MVP |
-| API             | REST, simple                           |
-| Message IDs     | Yes                                    |
-| Bounce handling | Webhook (post-MVP)                     |
+The adapter calls `POST https://api.resend.com/emails` with bearer authentication. It requires:
 
-### Fallback: Mailgun (optional)
+- secret `EMAIL_PROVIDER_API_KEY`;
+- non-secret `EMAIL_FROM_ADDRESS` on a verified sending domain.
 
-| Property      | Value                               |
-| ------------- | ----------------------------------- |
-| Free tier     | 5,000 emails/month (first 3 months) |
-| Sender domain | Custom domain or sandbox            |
-| API           | REST                                |
+Requests have a 10-second timeout. Notification deliveries use the delivery ID as Resend's
+`Idempotency-Key`. Provider response bodies and credentials are never logged or persisted.
 
-### Optional Temporary Adapter: Apps Script MailApp
+Response classification:
 
-> **Classification: Optional, temporary, NOT primary architecture.**
+- network errors, 408, 409, 425, 429, and 5xx: retryable;
+- other 4xx responses: permanent;
+- malformed 2xx responses: retryable;
+- `Retry-After`: accepted as seconds or an HTTP date, bounded to 24 hours by the adapter and to one
+  hour by delivery scheduling.
 
-```typescript
-class AppsScriptEmailProvider implements EmailProvider {
-  // Calls a minimal Apps Script Web App that only calls MailApp.sendEmail()
-  // Does NOT own subscriber data, event state, or delivery logic
-  // Has 100 email/day quota (Google Workspace: 1,500/day)
-  // Replaceable without touching domain logic
+## 4. Delivery retry policy
 
-  constructor(
-    private appsScriptUrl: string,
-    private secret: string
-  ) {}
+Notification delivery attempts are persisted per subscriber/event/channel. A claim token prevents a
+stale worker from finalizing a newer claim.
 
-  async sendEmail(params): Promise<{ messageId: string }> {
-    // POST to Apps Script; returns timestamp-based message ID
-  }
-}
-```
+| Failed attempt | Next default attempt        |
+| -------------- | --------------------------- |
+| 1              | +1 minute                   |
+| 2              | +5 minutes                  |
+| 3              | +15 minutes                 |
+| 4              | +1 hour                     |
+| 5              | Terminal `failed_permanent` |
 
----
+Retry updates the existing delivery row; it never creates a second row. A five-minute recovery lease
+returns abandoned `processing` rows to `pending` without invoking the email provider.
 
-## 5. Delivery Retry Policy
+## 5. Subscription email flow
 
-```
-Max attempts: 3
-Backoff schedule:
-  Attempt 1: immediate
-  Attempt 2: +5 minutes
-  Attempt 3: +30 minutes
-After attempt 3 failure: state = "failed_permanent"
+Raw confirmation and management tokens are never returned by public request endpoints or stored in
+D1. The service stores SHA-256 hashes and sends raw tokens only in HTTPS links:
 
-Retryable errors:
-  - Network timeout
-  - HTTP 429 (provider rate limit)
-  - HTTP 500, 502, 503, 504 (provider transient)
+- `/confirm?token=...` displays a confirmation button; GET does not consume the token;
+- after confirmation, the browser receives a new management token and navigates to `/manage?token=...`;
+- `/manage` can request a new link, update exactly two preferences, or unsubscribe.
 
-Permanent errors:
-  - HTTP 400 with "invalid email" code
-  - HTTP 422 (unprocessable entity)
-  - Bounce (if webhook available)
-  - Provider "invalid_to" or "email_not_found" codes
+The hosted pages use a restrictive CSP, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, and
+frame denial.
 
-Provider timeout behavior:
-  - state stays "processing" (guard)
-  - Cleanup job resets stuck "processing" → "pending" after 5 min
-  - Delivery ID used as idempotency key on retry
-```
+## 6. Notification template requirements
 
----
+Both notification templates include:
 
-## 6. Quota and Partial Delivery Policy
+- the observed event information;
+- a link to `willcodexquotareset.com` as the upstream source;
+- a manage/unsubscribe link;
+- the disclaimer “Unofficial community tool. Not affiliated with OpenAI.”
 
-1. Every subscriber has an individual `notification_deliveries` row.
-2. Quota exhaustion → `failed_retryable` with `PROVIDER_QUOTA_EXCEEDED`.
-3. Event not globally complete until all deliveries are terminal.
-4. Priority on quota constraint:
-   - `RESET_ANNOUNCED` > `PROBABILITY_REACHED_70` > confirmation resend
+The 70% message states the observed probability and does not claim certainty or timing. The announced
+message states that the reset is announced but may not have completed.
 
----
+## 7. Operational policy
 
-## 7. Sender Domain Requirements
+- Use a verified domain with SPF, DKIM, and DMARC.
+- Monitor retry backlog, permanent failures, rate limits, and provider errors.
+- Do not add a provider webhook or a second provider without a separately approved phase.
+- To stop production sending, remove/rotate `EMAIL_PROVIDER_API_KEY`; delivery processing will fail
+  closed and retry according to policy.
 
-Before production launch:
-
-- Register a sending domain (e.g. `mail.codex-reset.tools`)
-- Add SPF, DKIM, DMARC records
-- Verify domain with provider
-- Do not send from free Gmail/personal address
-- Include `List-Unsubscribe` header
-
----
-
-## 8. Email Templates (Exactly Three MVP Templates)
-
-| Template               | Subject                              |
-| ---------------------- | ------------------------------------ |
-| Confirmation           | "Confirm your Codex Reset alerts"    |
-| PROBABILITY_REACHED_70 | "Codex reset likelihood reached 70%" |
-| RESET_ANNOUNCED        | "Codex quota reset announced"        |
-
-### Template Content Requirements
-
-**All templates must include:**
-
-- Source updated time
-- Checked time
-- Link to source: willcodexquotareset.com
-- Unsubscribe link (HMAC-signed)
-- Disclaimer: "Unofficial community tool. Not affiliated with OpenAI."
-- "You are receiving this because you subscribed via [source]."
-
-**PROBABILITY_REACHED_70 template must:**
-
-- State the current probability (e.g. "Current likelihood: 73%")
-- NOT claim the reset is certain or imminent
-- NOT claim any specific timing
-
-**RESET_ANNOUNCED template must:**
-
-- State that a reset has been announced
-- Explicitly state it may not have completed yet
-- Reference the source: "According to willcodexquotareset.com"
-- State the tool is unofficial
-
-**All templates must NOT:**
-
-- Render raw source content without sanitization
-- Claim certainty beyond what the source provides
-- Use images that may be blocked by email clients for primary information
-
-### Excluded Templates (not in MVP)
-
-The following templates are explicitly NOT included in the MVP:
-
-- **90% alert template** — No 90% subscriber alert in MVP
-- **Reset completed subscriber template** — RESET_COMPLETED is an operational event; no subscriber email
+For deployment details, see [the production email runbook](runbooks/email-provider.md).

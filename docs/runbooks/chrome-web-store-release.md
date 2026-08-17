@@ -6,13 +6,14 @@ Procedure for packaging and releasing the Chrome Extension to the Chrome Web Sto
 
 ## 1. Prepare Package
 
-Run the packaging script to generate a deterministic ZIP:
+Set the deployed production Worker origin, then run the packaging script:
 
-```bash
+```powershell
+$env:WORKER_API_BASE_URL = 'https://<PRODUCTION_WORKER_HOST>'
 npm run package:extension
 ```
 
-The script outputs `extension-release.zip` and a SHA-256 checksum.
+The script performs a clean production build and outputs `extension-release.zip` plus `extension-release.zip.sha256`. It fails if the URL is local, staging, the upstream source, or contains a path.
 
 ## 2. Pre-flight Checklist
 

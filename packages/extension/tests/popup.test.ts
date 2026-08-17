@@ -17,6 +17,26 @@ describe('Extension UI and Client', () => {
     expect(ids).toContain('alert-announced');
   });
 
+  it('uses production copy and never pre-populates a test email', () => {
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+
+    expect(document.title).toBe('Codex Reset Notifier');
+    expect((document.getElementById('email') as HTMLInputElement).value).toBe('');
+    expect(html).not.toContain('Spike');
+    expect(html).not.toContain('test@example.com');
+  });
+
+  it('offers a management-link request with accessible live status regions', () => {
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+
+    expect(document.getElementById('manage-email')).not.toBeNull();
+    expect(document.getElementById('manage-btn')).not.toBeNull();
+    expect(document.getElementById('sub-result')?.getAttribute('aria-live')).toBe('polite');
+    expect(document.getElementById('manage-result')?.getAttribute('aria-live')).toBe('polite');
+  });
+
   // Client parsing logic is in popup.ts. Since we use fetch(), we can mock it
   // or just test the pure logic. The acceptance criteria mostly require the logic
   // to be present and to safely handle Zod parses. Since we use `publicStatusResponseSchema.parse`

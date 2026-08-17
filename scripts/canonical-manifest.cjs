@@ -118,12 +118,13 @@ module.exports = {
     'REL-BOUNDARY-14': 'Asserts zero functionality for Phase 10 exists.',
     // Email
     'REL-EMAIL-1':
-      'Instantiates staging email provider, asserts rejection of send and safe sandbox mode.',
+      'Instantiates the disabled staging provider, asserts its sink result and zero network calls.',
     // Security
     'REL-SEC-1':
-      'Scans repository for committed credentials, asserts zero occurrences of test-admin-secret.',
+      'Scans production source, Wrangler configuration, and package metadata for private-key and provider credential patterns.',
     'REL-SEC-2': 'Scans extension package, asserts zero admin API tokens or secrets included.',
-    'REL-SEC-3': 'Analyzes worker logs, asserts zero occurrences of admin tokens or provider keys.',
+    'REL-SEC-3':
+      'Injects admin/provider sentinel tokens through authentication and network-failure paths, asserts zero console occurrences.',
     // Monitoring
     'REL-MON-1': 'Reads docs/runbooks/monitoring-runbook.md, asserts failure threshold documented.',
     // Runbook

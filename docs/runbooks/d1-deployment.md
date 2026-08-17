@@ -6,8 +6,8 @@ This runbook details how to securely deploy and manage D1 database schemas for t
 
 ## Architecture
 
-- **Staging D1**: Bound to the `[env.staging]` configuration. ID: `11111111-1111-1111-1111-111111111111`
-- **Production D1**: Bound to the `[env.production]` configuration. ID: `22222222-2222-2222-2222-222222222222`
+- **Staging D1**: Bound to `[env.staging]` as `codex_reset_staging` (`6a5407b3-0ed5-4f16-bfc5-9322a37e7e12`).
+- **Production D1**: Must be created before Gate C. The current all-`2` ID is an intentional blocking placeholder and is rejected by release preflight.
 
 Development, staging, and production databases are strictly isolated. No data is shared.
 
