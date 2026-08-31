@@ -27,19 +27,19 @@ Cloudflare Workers + D1 based architecture to monitor and notify when the Codex 
 
 ## Project Status
 
-| Phase     | Name                     | Status                                                | Branch                            |
-| --------- | ------------------------ | ----------------------------------------------------- | --------------------------------- |
-| Phase 0   | Product Requirements     | APPROVED                                              | `phase-0-discovery`               |
-| Phase 0.5 | Architecture & Contracts | APPROVED                                              | `phase-0.5-architecture`          |
-| Phase 1   | Project Foundation       | APPROVED                                              | `phase-1-project-foundation`      |
-| Phase 1A  | Transport Spike          | APPROVED                                              | `phase-1a-worker-extension-spike` |
-| Phase 2   | D1 Persistence           | APPROVED                                              | `phase-2-d1-persistence`          |
-| Phase 3   | Source Snapshots         | APPROVED                                              | `phase-3-source-snapshots`        |
-| Phase 4   | Cycle & Event Detection  | APPROVED                                              | `phase-4-cycle-event-detection`   |
-| Phase 5   | Subscription Management  | APPROVED                                              | `phase-5-subscription-management` |
-| Phase 6   | Notification Delivery    | APPROVED                                              | `phase-6-email-delivery`          |
-| Phase 7   | Cron Orchestration       | APPROVED                                              | `phase-7-orchestration-cron`      |
-| Phase 8   | Dashboard, Metrics & UI  | APPROVED                                              | `phase-8-dashboard-metrics`       |
-| Phase 9   | Production Release       | IN PROGRESS — GATES A, B & C COMPLETE (GATE D PENDING)        | `phase-9-production-release`      |
+| Phase     | Name                     | Status                                                 | Branch                            |
+| --------- | ------------------------ | ------------------------------------------------------ | --------------------------------- |
+| Phase 0   | Product Requirements     | APPROVED                                               | `phase-0-discovery`               |
+| Phase 0.5 | Architecture & Contracts | APPROVED                                               | `phase-0.5-architecture`          |
+| Phase 1   | Project Foundation       | APPROVED                                               | `phase-1-project-foundation`      |
+| Phase 1A  | Transport Spike          | APPROVED                                               | `phase-1a-worker-extension-spike` |
+| Phase 2   | D1 Persistence           | APPROVED                                               | `phase-2-d1-persistence`          |
+| Phase 3   | Source Snapshots         | APPROVED                                               | `phase-3-source-snapshots`        |
+| Phase 4   | Cycle & Event Detection  | APPROVED                                               | `phase-4-cycle-event-detection`   |
+| Phase 5   | Subscription Management  | APPROVED                                               | `phase-5-subscription-management` |
+| Phase 6   | Notification Delivery    | APPROVED                                               | `phase-6-email-delivery`          |
+| Phase 7   | Cron Orchestration       | APPROVED                                               | `phase-7-orchestration-cron`      |
+| Phase 8   | Dashboard, Metrics & UI  | APPROVED                                               | `phase-8-dashboard-metrics`       |
+| Phase 9   | Production Release       | APPROVED                                               | `phase-9-production-release`      |
 
-Phase 9 Gates A, B, and C are complete (727 tests pass, staging Worker deployed, production Worker deployed to `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev`, all 7 D1 migrations applied, ADMIN_API_TOKEN and RATE_LIMIT_SECRET bound). Gate D (Chrome Web Store submission) requires the Resend domain `notidex.click` to be verified and `EMAIL_PROVIDER_API_KEY` bound, followed by the explicit approval phrase documented in the [Phase 9 plan](docs/phases/phase-9-production-release.md).
+Phase 9 is COMPLETE across all gates (727 tests pass, staging and production Workers deployed, production D1 migrations applied, all production secrets bound, Resend custom domain `notidex.click` verified, and production Chrome extension package `extension-release.zip` generated and uploaded to Chrome Web Store).

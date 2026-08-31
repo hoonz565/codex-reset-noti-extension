@@ -174,5 +174,69 @@ export function handlePublicPage(request: Request): Response | null {
       headers: { ...commonHeaders, 'Content-Type': 'text/css; charset=utf-8' },
     });
   }
+  if (pathname === '/privacy') {
+    return new Response(
+      `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Privacy Policy — Codex Reset Notifier</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #172033; background: #f4f7fb; }
+    body { margin: 0; padding: 32px 16px; }
+    main { box-sizing: border-box; max-width: 720px; margin: 0 auto; padding: 32px; border: 1px solid #d7dde5; border-radius: 12px; background: white; box-shadow: 0 10px 30px rgba(23,32,51,.08); }
+    h1 { margin-top: 0; font-size: 1.6rem; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+    p, li { line-height: 1.65; color: #344054; }
+    a { color: #175cd3; }
+    .updated { color: #667085; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 2026-08-31</p>
+    <p>Codex Reset Notifier (&ldquo;the Extension&rdquo;, &ldquo;the Service&rdquo;) is an unofficial community tool that monitors the Codex quota reset cycle and sends email notifications. It is not affiliated with OpenAI.</p>
+
+    <h2>1. What data we collect</h2>
+    <p>We collect only your <strong>email address</strong>, provided voluntarily when you subscribe for reset notifications. No other personal data is collected.</p>
+
+    <h2>2. How we use your data</h2>
+    <p>Your email address is used exclusively to send you the notification types you selected:</p>
+    <ul>
+      <li>When the Codex reset probability reaches 70%</li>
+      <li>When a Codex reset is officially announced</li>
+    </ul>
+    <p>We do not use your email for marketing, profiling, or any other purpose.</p>
+
+    <h2>3. Data storage</h2>
+    <p>Your email address is stored in a Cloudflare D1 database hosted in the APAC region. It is stored only for as long as your subscription is active.</p>
+
+    <h2>4. Data sharing</h2>
+    <p>We do not sell, rent, or share your personal data with any third party, except that email delivery is performed via <a href="https://resend.com/privacy" rel="noopener">Resend</a> (our transactional email provider), solely for the purpose of delivering your notifications.</p>
+
+    <h2>5. Your rights</h2>
+    <p>You may unsubscribe and delete your data at any time by visiting the <a href="/manage">subscription management page</a> and clicking &ldquo;Unsubscribe&rdquo;. This immediately and permanently deletes your email address from our systems.</p>
+
+    <h2>6. Extension permissions</h2>
+    <p>The Chrome Extension requests network access solely to communicate with the Codex Reset Notifier Worker API (<code>codex-reset-notifier.nguyenminhhung05062005.workers.dev</code>) to fetch reset status and manage subscriptions. No other hosts are accessed.</p>
+
+    <h2>7. Contact</h2>
+    <p>For privacy questions, contact us at <a href="mailto:alerts@notidex.click">alerts@notidex.click</a>.</p>
+
+    <p class="updated">This is an unofficial community tool. Not affiliated with OpenAI.</p>
+  </main>
+</body>
+</html>`,
+      {
+        headers: {
+          ...commonHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=86400',
+        },
+      }
+    );
+  }
   return null;
 }

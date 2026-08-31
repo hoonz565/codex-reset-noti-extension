@@ -224,9 +224,13 @@ describe('Phase 9 Canonical Release Requirements', () => {
     });
 
     it('REL-PREFLIGHT-5: Production extension ID placeholder blocks production release validation.', () => {
+      const placeholderContent = wranglerContent.replace(
+        /(\[env\.production\.vars\][\s\S]*?ALLOWED_ORIGINS\s*=\s*)"[^"]+"/,
+        '$1"chrome-extension://<PRODUCTION_EXTENSION_ID>"'
+      );
       const code = runPreflight(
         ['node', 'script', '--environment', 'production', '--confirm-production'],
-        wranglerContent
+        placeholderContent
       );
       expect(code).toBe(2);
     });

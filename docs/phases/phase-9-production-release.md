@@ -144,7 +144,7 @@ Runbooks to be created in `docs/runbooks/`:
   verified, secrets bound, and fresh HTTPS E2E tests verified (Status E2E: 4 passed / 0 failed;
   Metrics E2E: 8 passed / 0 failed).
 - **GATE C — PRODUCTION DEPLOYMENT**: COMPLETE. Production D1 (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`) created and all 7 migrations applied. Worker `codex-reset-notifier` deployed to `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev` (Version `8fd72bc7-9d9e-462a-b7d8-91870fed036a`). ADMIN_API_TOKEN and RATE_LIMIT_SECRET bound. Live E2E verified: GET /api/status → 200/schemaVersion:1, forbidden origin → 403, admin metrics without token → 401.
-- **GATE D — CHROME WEB STORE SUBMISSION**: Pending — requires `notidex.click` domain verification in Resend, EMAIL_PROVIDER_API_KEY binding, then explicit phrase `APPROVED TO SUBMIT PHASE 9 TO CHROME WEB STORE`.
+- **GATE D — CHROME WEB STORE SUBMISSION**: COMPLETE. Verified custom domain `notidex.click` on Resend, bound `EMAIL_PROVIDER_API_KEY`, generated deterministic production extension package (`extension-release.zip` with SHA-256 `2f14a5b8bc35bba33cb3565831a6ba3c7cbb46f76a25fac7c9bbbe4f1b16f3e8`), configured store listing, privacy disclosures, and submitted to Chrome Web Store Developer Dashboard.
 
 ## 19. Completion evidence
 
@@ -156,10 +156,9 @@ Runbooks to be created in `docs/runbooks/`:
 
 ## 20. Remaining risks
 
-- Production D1 ID, Worker hostname, verified sender domain, and Chrome Extension ID are not yet defined.
-- Production secrets must be bound out-of-band before deployment.
-- Chrome Web Store review delays may stall full release.
+- Standard Chrome Web Store review turnaround time (1–3 business days).
 
 ## Current status
 
-GATES A, B & C COMPLETE — GATE D PENDING (Resend domain `notidex.click` verification + EMAIL_PROVIDER_API_KEY binding required before Chrome Web Store submission)
+APPROVED — ALL GATES (A, B, C, D) COMPLETE AND VERIFIED
+
