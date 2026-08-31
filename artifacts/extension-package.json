@@ -1,0 +1,11 @@
+{
+  "runId": "run-1788175504927",
+  "headCommit": "4525dd839e6218bbce9d5483b2a119df400a2b25",
+  "generatedAt": "2026-08-31T11:29:50.778Z",
+  "apiOrigin": "https://codex-reset-notifier.example.workers.dev",
+  "archive": "extension-release.zip",
+  "sha256": "3b214457d36c2650ce8ace7d4bd1743b3ab7e889ca4b9921d21936e32d3f3421",
+  "checksumVerified": true,
+  "releaseReady": false,
+  "note": "Verification package only; rebuild with the deployed production Worker origin."
+}

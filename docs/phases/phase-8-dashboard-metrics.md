@@ -45,15 +45,17 @@ Replace the transport-spike UI with the final production extension UI. Display c
 
 ## 9. Current status
 
-PLANNED
+APPROVED
 
 ## 10. Suggested Git branch
 
-`phase-8-extension-ui`
+`phase-8-dashboard-metrics`
 
 ## 11. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `a9c8b08` (`feat: complete Phase 8 dashboard status and metrics`).
+- Original evidence: [Phase 8 verification report](../../phase-8-report.md).
+- Final popup subscription/management UX regression evidence: [Phase 9 verification report](../../phase-9-report.md).
 
 ## 12. Risks and unresolved questions
 

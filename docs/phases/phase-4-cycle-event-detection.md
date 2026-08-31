@@ -48,7 +48,7 @@ Bootstrap and manage reset cycles, compare fresh snapshots, detect subscriber ev
 
 ## 9. Current status
 
-PLANNED
+APPROVED
 
 ## 10. Suggested Git branch
 
@@ -56,7 +56,8 @@ PLANNED
 
 ## 11. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `f83635e` (`feat: implement Phase 4 cycle and event detection`).
+- Regression evidence: [Phase 9 verification report](../../phase-9-report.md).
 
 ## 12. Risks and unresolved questions
 

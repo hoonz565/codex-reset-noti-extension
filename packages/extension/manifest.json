@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Codex Reset Notifier (Spike)",
-  "version": "1.0",
-  "description": "Spike for Chrome Extension Transport",
+  "name": "Codex Reset Notifier",
+  "version": "1.0.0",
+  "description": "View Codex reset status and manage reset alerts.",
   "action": {
     "default_popup": "popup.html"
   },

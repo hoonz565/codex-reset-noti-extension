@@ -47,7 +47,7 @@ Create delivery rows for eligible subscribers, implement the email provider adap
 
 ## 9. Current status
 
-PLANNED
+APPROVED
 
 ## 10. Suggested Git branch
 
@@ -55,7 +55,8 @@ PLANNED
 
 ## 11. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `1a13a05` (`feat: implement Phase 6 notification delivery`).
+- Production Resend adapter and regression evidence: [Phase 9 verification report](../../phase-9-report.md).
 
 ## 12. Risks and unresolved questions
 

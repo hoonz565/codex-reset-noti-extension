@@ -1,0 +1,136 @@
+{
+  "runAt": "2026-08-17T13:49:28.906Z",
+  "stagingUrl": "https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev",
+  "bearerNote": "Bearer token read from STAGING_ADMIN_TOKEN env var. Value never recorded.",
+  "tests": [
+    {
+      "name": "Missing bearer → HTTP 401",
+      "result": "PASS",
+      "evidence": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/json",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247b9d19fdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:30 GMT"
+        }
+      }
+    },
+    {
+      "name": "Invalid bearer → HTTP 401",
+      "result": "PASS",
+      "evidence": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/json",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247c0ebffdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:30 GMT"
+        }
+      }
+    },
+    {
+      "name": "Origin only, no bearer → HTTP 401",
+      "result": "PASS",
+      "evidence": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/json",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247c8839fdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:30 GMT"
+        }
+      }
+    },
+    {
+      "name": "Valid bearer → HTTP 200, schema valid, no PII",
+      "result": "PASS",
+      "evidence": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247cf9bafdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:31 GMT"
+        },
+        "schemaVersion": 1,
+        "window": "24h",
+        "sections": ["orchestration", "source", "events", "deliveries"]
+      }
+    },
+    {
+      "name": "Unsupported window → HTTP 400",
+      "result": "PASS",
+      "evidence": {
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247effabfdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:31 GMT"
+        }
+      }
+    },
+    {
+      "name": "window=1h → HTTP 200, schema valid",
+      "result": "PASS",
+      "evidence": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c9247f6940fdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:31 GMT"
+        },
+        "schemaVersion": 1,
+        "window": "1h"
+      }
+    },
+    {
+      "name": "window=24h → HTTP 200, schema valid",
+      "result": "PASS",
+      "evidence": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c92480de4cfdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:31 GMT"
+        },
+        "schemaVersion": 1,
+        "window": "24h"
+      }
+    },
+    {
+      "name": "window=7d → HTTP 200, schema valid",
+      "result": "PASS",
+      "evidence": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "cache-control": "private, no-store",
+          "access-control-allow-origin": "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc",
+          "vary": "Origin",
+          "cf-ray": "a2c924828beefdfb-SIN",
+          "date": "Mon, 17 Aug 2026 13:49:32 GMT"
+        },
+        "schemaVersion": 1,
+        "window": "7d"
+      }
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0
+  }
+}

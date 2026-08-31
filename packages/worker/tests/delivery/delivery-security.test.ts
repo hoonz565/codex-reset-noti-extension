@@ -19,8 +19,9 @@ describe('Delivery Security', () => {
   });
 
   it('DEL-SEC-4: Provider-native exceptions map to stable internal codes.', () => {
-    // Verified by MockEmailProvider isolating internal logic and processNextDueDelivery catching it
-    expect(true).toBe(true);
+    expect(procCode).toContain("const code = 'INTERNAL_ERROR'");
+    expect(procCode).toContain("const msg = 'Unhandled provider or processing error'");
+    expect(procCode).not.toMatch(/e instanceof Error \? e\.message/);
   });
 
   it('DEL-SEC-6: Delivery writes use parameterized D1 statements.', () => {

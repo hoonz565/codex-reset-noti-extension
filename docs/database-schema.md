@@ -44,7 +44,6 @@
 "pending"               – job created, not yet attempted
 "processing"            – currently being sent (guard against duplicate send)
 "sent_to_provider"      – provider accepted the message (NOT confirmed delivery)
-"failed_retryable"      – transient error, will retry
 "failed_permanent"      – permanent error (bounce, invalid address), no retry
 "cancelled"             – subscriber unsubscribed before send
 ```
@@ -246,9 +245,9 @@ CREATE TABLE IF NOT EXISTS notification_deliveries (
 
   CHECK (state IN (
     'pending','processing','sent_to_provider',
-    'failed_retryable','failed_permanent','cancelled'
+    'failed_permanent','cancelled'
   )),
-  CHECK (channel IN ('email','whatsapp','telegram','browser'))
+  CHECK (channel = 'email')
 );
 
 CREATE INDEX IF NOT EXISTS idx_deliveries_event
@@ -259,7 +258,7 @@ CREATE INDEX IF NOT EXISTS idx_deliveries_subscriber
 
 CREATE INDEX IF NOT EXISTS idx_deliveries_state_pending
   ON notification_deliveries(state, next_attempt_at)
-  WHERE state IN ('pending', 'failed_retryable');
+  WHERE state = 'pending';
 
 -- ─── rate_limit_records ────────────────────────────────────────────────────
 

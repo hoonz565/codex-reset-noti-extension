@@ -1,0 +1,36 @@
+{
+  "runId": "run-1788175504927",
+  "headCommit": "4525dd839e6218bbce9d5483b2a119df400a2b25",
+  "results": {
+    "npm run format:check": 0,
+    "npm run lint": 0,
+    "npm run typecheck": 0,
+    "npm run build": 0,
+    "npm audit --audit-level=moderate": 0,
+    "test:packages/shared": {
+      "command": "npx vitest run --reporter default --reporter json --outputFile verification-results.json (cwd: packages/shared)",
+      "exitCode": 0,
+      "numPassedTests": 44,
+      "numFailedTests": 0,
+      "unexpectedShutdown": false,
+      "unhandledErrors": 0
+    },
+    "test:packages/worker": {
+      "command": "npx vitest run --reporter default --reporter json --outputFile verification-results.json (cwd: packages/worker)",
+      "exitCode": 0,
+      "numPassedTests": 645,
+      "numFailedTests": 0,
+      "unexpectedShutdown": false,
+      "unhandledErrors": 0
+    },
+    "test:packages/extension": {
+      "command": "npx vitest run --reporter default --reporter json --outputFile verification-results.json (cwd: packages/extension)",
+      "exitCode": 0,
+      "numPassedTests": 38,
+      "numFailedTests": 0,
+      "unexpectedShutdown": false,
+      "unhandledErrors": 0
+    },
+    "npm run package:extension": 0
+  }
+}

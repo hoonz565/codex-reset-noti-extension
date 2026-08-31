@@ -217,19 +217,45 @@ describe('Canonical Security (DASH-SEC-1..10)', () => {
   });
 
   it('DASH-SEC-10: No real secret is committed in source, fixtures, docs, or wrangler.toml.', () => {
-    const sourceFiles = import.meta.glob('../../src/**/*.ts', { query: '?raw', import: 'default', eager: true });
-    const testFiles = import.meta.glob('../../tests/**/*.ts', { query: '?raw', import: 'default', eager: true });
-    const docFiles = import.meta.glob('../../../../docs/**/*.md', { query: '?raw', import: 'default', eager: true });
-    const packageFiles = import.meta.glob('../../../../package.json', { query: '?raw', import: 'default', eager: true });
-    const wranglerFile = import.meta.glob('../../wrangler.toml', { query: '?raw', import: 'default', eager: true });
+    const sourceFiles = import.meta.glob('../../src/**/*.ts', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const testFiles = import.meta.glob('../../tests/**/*.ts', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const docFiles = import.meta.glob('../../../../docs/**/*.md', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const packageFiles = import.meta.glob('../../../../package.json', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const wranglerFile = import.meta.glob('../../wrangler.toml', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
 
-    const allFiles = { ...sourceFiles, ...testFiles, ...docFiles, ...packageFiles, ...wranglerFile };
+    const allFiles = {
+      ...sourceFiles,
+      ...testFiles,
+      ...docFiles,
+      ...packageFiles,
+      ...wranglerFile,
+    };
 
     const allowedPlaceholders = ['"test-admin-secret"', '"dev-secret"', "'dev-secret'"];
-    
-    for (const [path, contentRaw] of Object.entries(allFiles)) {
+
+    for (const [_path, contentRaw] of Object.entries(allFiles)) {
       let content = contentRaw as string;
-      
+
       for (const p of allowedPlaceholders) {
         content = content.replace(new RegExp(p, 'g'), '""');
       }
@@ -237,10 +263,10 @@ describe('Canonical Security (DASH-SEC-1..10)', () => {
       // Reject real-looking long bearer/API values
       expect(content).not.toMatch(/ADMIN_API_TOKEN\s*=\s*['"][^'"]{15,}['"]/);
       expect(content).not.toMatch(/RATE_LIMIT_SECRET\s*=\s*['"][^'"]{15,}['"]/);
-      
+
       // Reject SG.-prefixed credentials
       expect(content).not.toMatch(/SG\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/);
-      
+
       // Reject committed non-placeholder secrets like sk_live_
       expect(content).not.toMatch(/sk_live_[a-zA-Z0-9]+/);
 

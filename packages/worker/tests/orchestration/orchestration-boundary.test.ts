@@ -44,14 +44,30 @@ describe('Orchestration Phase Boundaries', () => {
   it('ORCH-BOUNDARY-5: no provider webhook route exists', async () => {
     // Assert that a webhook request returns 404
     const req = new Request('http://localhost/api/webhooks/mailgun', { method: 'POST' });
-    const res = await worker.fetch(req, {} as any, {} as any);
+    const backgroundPromises: Promise<any>[] = [];
+    const ctx = {
+      waitUntil: (p: Promise<any>) => backgroundPromises.push(p),
+      passThroughOnException: () => {},
+    } as any;
+    const res = await worker.fetch(req, {} as any, ctx);
     expect(res.status).toBe(404);
+    if (backgroundPromises.length > 0) {
+      await Promise.all(backgroundPromises);
+    }
   });
 
   it('ORCH-BOUNDARY-6: no Phase 8 UI code was introduced', async () => {
     // Phase 8 admin dashboard UI should return 404
     const req = new Request('http://localhost/api/admin/dashboard');
-    const res = await worker.fetch(req, {} as any, {} as any);
+    const backgroundPromises: Promise<any>[] = [];
+    const ctx = {
+      waitUntil: (p: Promise<any>) => backgroundPromises.push(p),
+      passThroughOnException: () => {},
+    } as any;
+    const res = await worker.fetch(req, {} as any, ctx);
     expect(res.status).toBe(404);
+    if (backgroundPromises.length > 0) {
+      await Promise.allSettled(backgroundPromises);
+    }
   });
 });

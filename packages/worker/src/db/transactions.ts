@@ -90,7 +90,10 @@ export class DbTransactions {
       UPDATE reset_cycles 
       SET state = 'completed', updated_at = ?, completed_at = ?, transition_token = ? 
       WHERE id = ? AND state = 'active'
-        AND (SELECT reset_cycle_id FROM source_snapshots WHERE id = ?) = ?
+        AND EXISTS (
+          SELECT 1 FROM source_snapshots
+          WHERE id = ? AND reset_cycle_id = ? AND source_health IN ('healthy', 'degraded')
+        )
     `
       )
       .bind(markCompletedAt, markCompletedAt, transitionToken, oldCycleId, snapshotId, oldCycleId);

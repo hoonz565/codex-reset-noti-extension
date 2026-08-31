@@ -49,7 +49,7 @@ Implement subscription creation, the confirmation flow (double opt-in), manageme
 
 ## 9. Current status
 
-PLANNED
+APPROVED
 
 ## 10. Suggested Git branch
 
@@ -57,7 +57,9 @@ PLANNED
 
 ## 11. Completion evidence or links to reports
 
-- N/A
+- Implementation: commit `fa02cbc` (`feat: implement Phase 5 subscription management`).
+- Confirmation delivery, management-link delivery, and hosted secure management UI are covered by
+  the current [Phase 9 verification report](../../phase-9-report.md).
 
 ## 12. Risks and unresolved questions
 

@@ -2,10 +2,14 @@ node_modules/
 dist/
 build/
 coverage/
+extension-release.zip
+extension-release.zip.sha256
+artifacts/wrangler-dry-run.log
 
 .env
 .env.*
 !.env.example
 .dev.vars
 .dev.vars.*
+!packages/worker/.dev.vars.example
 .wrangler

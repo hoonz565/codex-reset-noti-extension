@@ -2,44 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Codex Reset Notifier Spike</title>
+    <title>Codex Reset Notifier</title>
     <link rel="stylesheet" href="popup.css" />
-    <style>
-      body {
-        font-family: sans-serif;
-        width: 300px;
-        padding: 10px;
-      }
-      .status {
-        margin-bottom: 15px;
-        padding: 10px;
-        background: #f0f0f0;
-        border-radius: 4px;
-      }
-      .error {
-        color: red;
-      }
-      .success {
-        color: green;
-      }
-      button {
-        margin-top: 10px;
-        width: 100%;
-        padding: 8px;
-      }
-    </style>
   </head>
   <body>
-    <h2>Codex Reset</h2>
+    <header>
+      <h1>Codex Reset Notifier</h1>
+      <p>Unofficial community alerts for Codex quota-reset signals.</p>
+    </header>
     <div id="dashboard-container"></div>
 
-    <h3>Subscribe</h3>
-    <label><input type="checkbox" id="alert-70" checked /> Likelihood reaches 70%</label><br />
-    <label><input type="checkbox" id="alert-announced" checked /> A reset is announced</label><br />
-    <label>Email: <input type="email" id="email" value="test@example.com" /></label><br />
-    <button id="subscribe-btn">Subscribe</button>
+    <section aria-labelledby="subscribe-heading">
+      <h2 id="subscribe-heading">Choose your alerts</h2>
+      <label class="choice"
+        ><input type="checkbox" id="alert-70" checked /> Likelihood reaches 70%</label
+      >
+      <label class="choice"
+        ><input type="checkbox" id="alert-announced" checked /> A reset is announced</label
+      >
+      <label for="email">Email address</label>
+      <input type="email" id="email" autocomplete="email" required />
+      <button id="subscribe-btn" type="button">Subscribe</button>
+      <div id="sub-result" class="form-message" role="status" aria-live="polite"></div>
+    </section>
 
-    <div id="sub-result" style="margin-top: 10px"></div>
+    <details>
+      <summary>Manage an existing subscription</summary>
+      <label for="manage-email">Email address</label>
+      <input type="email" id="manage-email" autocomplete="email" required />
+      <button id="manage-btn" type="button">Email me a secure link</button>
+      <div id="manage-result" class="form-message" role="status" aria-live="polite"></div>
+    </details>
+
+    <footer>Not affiliated with OpenAI. Reset timing is not guaranteed.</footer>
 
     <script src="popup.js"></script>
   </body>

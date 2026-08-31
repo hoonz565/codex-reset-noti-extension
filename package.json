@@ -13,17 +13,25 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "npm run typecheck --workspaces",
-    "build": "npm run build --workspaces"
+    "typecheck": "npm run build --workspace @codex-reset/shared && npm run typecheck --workspaces",
+    "build": "npm run build --workspace @codex-reset/shared && npm run build --workspace @codex-reset/worker && npm run build --workspace @codex-reset/extension",
+    "package:extension": "node scripts/package-extension.mjs",
+    "release:preflight:staging": "node scripts/release-preflight.cjs --environment staging",
+    "release:preflight:production": "node scripts/release-preflight.cjs --environment production",
+    "verify:staging:status": "node scripts/verify-staging-e2e.cjs",
+    "verify:staging:metrics": "node scripts/verify-staging-metrics-e2e.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^20.12.7",
+    "adm-zip": "^0.6.0",
+    "archiver": "^8.0.0",
     "eslint": "^9.0.0",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "zod": "^3.23.6"

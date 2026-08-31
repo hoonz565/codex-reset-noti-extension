@@ -3,6 +3,7 @@ export interface ProviderEmailRequest {
   subject: string;
   text: string;
   html: string;
+  idempotencyKey?: string;
 }
 
 export type ProviderEmailResult =

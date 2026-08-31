@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DeliveryRecoveryService } from '../../src/services/delivery-recovery-service';
 import { setupTestDb } from '../db/test-utils';
 import { NotificationDeliveryRepository } from '../../src/db/repositories/NotificationDeliveryRepository';
@@ -103,12 +103,12 @@ describe('Delivery Recovery Service', () => {
   });
 
   it('DEL-REC-6: Recovery never invokes the email provider.', async () => {
-    // DeliveryRecoveryService doesn't have an email provider injected
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
     const staleTime = new Date(now.getTime() - 6 * 60000).toISOString();
     await insertProcessingDelivery('del1', staleTime);
     await service.recoverStaleClaims(5 * 60000);
-    // Verified by typescript / DI
-    expect(true).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
   });
 
   it('recovery does not increment attempt_count', async () => {

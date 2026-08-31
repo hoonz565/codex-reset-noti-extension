@@ -40,26 +40,26 @@
 
 ### Database Tests
 
-| #             | Test                                                           | Expected                                                                                                                                                             |
-| ------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DB01          | UNIQUE(reset_cycle_id, PROBABILITY_REACHED_70)                 | Duplicate blocked; INSERT OR IGNORE safe                                                                                                                             |
-| DB02          | UNIQUE(reset_cycle_id, RESET_ANNOUNCED)                        | Duplicate blocked                                                                                                                                                    |
-| DB03          | new cycle allows a new 70 event                                | Insert succeeds for new reset_cycle_id                                                                                                                               |
-| DB04          | subscriber schema contains notify_70 and notify_announced only | Verified via schema reflection or insert                                                                                                                             |
-| DB05          | invalid event type PROBABILITY_REACHED_90 rejected             | DB constraint violation                                                                                                                                              |
-| DB06          | Unsubscribe clicked twice                                      | Second click: already unsubscribed; success silently                                                                                                                 |
-| DB07          | Expired confirmation token submitted                           | Rejected; expiry check enforced                                                                                                                                      |
-| DB08          | Invalid management token                                       | Rejected with 401                                                                                                                                                    |
-| DB09          | Token version incremented; old unsubscribe link                | Old link rejected (tokenVersion mismatch)                                                                                                                            |
-| DB10          | PRAGMA foreign_keys ON: insert snapshot with invalid cycle ID  | Rejected by FK constraint                                                                                                                                            |
-| DB11          | Valid unexpired confirmation token submitted                   | state transitions to active, confirmed_at set, confirmation_token_hash cleared, confirmation_expires_at cleared, preferences unchanged, idempotent, no duplicate row |
-| CYCLE-TX-1    | Successful completion transition commits all steps             | All 7 steps succeed                                                                                                                                                  |
-| CYCLE-TX-2    | Failure after operational event creation                       | Rolls back everything                                                                                                                                                |
-| CYCLE-TX-3    | Failure after Cycle A update                                   | Rolls back everything                                                                                                                                                |
-| CYCLE-TX-4    | Retrying the same latestResetAt                                | Does not create a duplicate cycle or duplicate RESET_COMPLETED event                                                                                                 |
-| AUDIT-IDEMP-1 | Same reset completion retried twice                            | Creates one audit event                                                                                                                                              |
-| AUDIT-IDEMP-2 | Same cycle creation retried twice                              | Creates one audit event                                                                                                                                              |
-| AUDIT-IDEMP-3 | Same suppression decision retried twice                        | Creates one audit record                                                                                                                                             |
+| #             | Test                                                           | Expected                                                                                                                   |
+| ------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| DB01          | UNIQUE(reset_cycle_id, PROBABILITY_REACHED_70)                 | Duplicate blocked; INSERT OR IGNORE safe                                                                                   |
+| DB02          | UNIQUE(reset_cycle_id, RESET_ANNOUNCED)                        | Duplicate blocked                                                                                                          |
+| DB03          | new cycle allows a new 70 event                                | Insert succeeds for new reset_cycle_id                                                                                     |
+| DB04          | subscriber schema contains notify_70 and notify_announced only | Verified via schema reflection or insert                                                                                   |
+| DB05          | invalid event type PROBABILITY_REACHED_90 rejected             | DB constraint violation                                                                                                    |
+| DB06          | Unsubscribe called twice with a valid token                    | Idempotent success; subscriber remains unsubscribed                                                                        |
+| DB07          | Expired confirmation token submitted                           | Rejected; expiry check enforced                                                                                            |
+| DB08          | Invalid management token                                       | Rejected with 401                                                                                                          |
+| DB09          | Revoked/rotated management token used                          | Rejected with 401                                                                                                          |
+| DB10          | PRAGMA foreign_keys ON: insert snapshot with invalid cycle ID  | Rejected by FK constraint                                                                                                  |
+| DB11          | Valid unexpired confirmation token submitted                   | State transitions to active, token row is consumed, requested preferences are applied, and one management token is created |
+| CYCLE-TX-1    | Successful completion transition commits all steps             | All 7 steps succeed                                                                                                        |
+| CYCLE-TX-2    | Failure after operational event creation                       | Rolls back everything                                                                                                      |
+| CYCLE-TX-3    | Failure after Cycle A update                                   | Rolls back everything                                                                                                      |
+| CYCLE-TX-4    | Retrying the same latestResetAt                                | Does not create a duplicate cycle or duplicate RESET_COMPLETED event                                                       |
+| AUDIT-IDEMP-1 | Same reset completion retried twice                            | Creates one audit event                                                                                                    |
+| AUDIT-IDEMP-2 | Same cycle creation retried twice                              | Creates one audit event                                                                                                    |
+| AUDIT-IDEMP-3 | Same suppression decision retried twice                        | Creates one audit record                                                                                                   |
 
 ### Delivery Tests
 
@@ -70,56 +70,55 @@
 | DL03 | RESET_COMPLETED creates no subscriber delivery                           | Operational event only                                   |
 | DL04 | same event and subscriber is idempotent                                  | UNIQUE(event_id, subscriber_id, channel) enforced        |
 | DL05 | Provider accepts email                                                   | state=sent_to_provider, providerMessageId set            |
-| DL06 | Provider returns 429                                                     | state=failed_retryable, next_attempt_at scheduled        |
+| DL06 | Provider returns 429                                                     | state returns to pending, next_attempt_at scheduled      |
 | DL07 | Provider request times out                                               | state=processing (guard); cleanup job resets to pending  |
 | DL08 | Partial batch: 3 of 5 recipients succeed                                 | Failed rows individually retried; success rows untouched |
 
 ### API Tests
 
-| #                 | Test                                                             | Expected                                                                                                                                                                                                          |
-| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A01               | POST subscription accepts probability70 + resetAnnounced         | 201 with managementToken                                                                                                                                                                                          |
-| A02               | POST subscription rejects probability90                          | 400 Bad Request                                                                                                                                                                                                   |
-| STATUS-COLD-START | GET /api/status before any successful crawl                      | status is null, sourceHealth is unavailable                                                                                                                                                                       |
-| A03               | POST subscription rejects resetCompleted                         | 400 Bad Request                                                                                                                                                                                                   |
-| A04               | PATCH preferences requires management token                      | 401 Unauthorized                                                                                                                                                                                                  |
-| A05               | Both alerts false                                                | Validation error (400)                                                                                                                                                                                            |
-| A06               | Valid confirmation transitions pending_confirmation → active     | state="active" in GET /api/subscriptions/:id/status                                                                                                                                                               |
-| A07               | GET /api/status: valid snapshot exists                           | Returns CodexResetStatus schema                                                                                                                                                                                   |
-| A08               | CORS preflight from allowed extension origin                     | 200 with correct CORS headers                                                                                                                                                                                     |
-| A09               | Rate limited subscription create                                 | 429 with retryAfterSeconds                                                                                                                                                                                        |
-| A10               | POST /api/subscriptions/:id/resend-confirmation: cooldown active | 429 with retryAfterSeconds                                                                                                                                                                                        |
-| A17               | POST /admin/force-crawl with valid secret                        | invokes same CrawlService as Cron; response includes executionId, snapshotId, sourceHealth, eventsEmitted; 401 if invalid auth; bootstrap-alert override disabled by default; repeated request is safe/idempotent |
-| A12               | PATCH preferences: set notify_announced=true                     | confirmed in response                                                                                                                                                                                             |
+| #                 | Test                                                         | Expected                                                                                               |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| A01               | POST subscription accepts probability70 + resetAnnounced     | Generic 202; confirmation email queued; no token leaked                                                |
+| A02               | POST subscription rejects probability90                      | 400 Bad Request                                                                                        |
+| STATUS-COLD-START | GET /api/status before any successful crawl                  | status is null, sourceHealth is unavailable                                                            |
+| A03               | POST subscription rejects resetCompleted                     | 400 Bad Request                                                                                        |
+| A04               | PATCH preferences requires management token                  | 401 Unauthorized                                                                                       |
+| A05               | Both alerts false                                            | Validation error (400)                                                                                 |
+| A06               | Valid confirmation transitions pending_confirmation → active | POST confirm returns a new management token; GET /api/subscriptions/manage reports active              |
+| A07               | GET /api/status: valid snapshot exists                       | Returns CodexResetStatus schema                                                                        |
+| A08               | CORS preflight from allowed extension origin                 | 200 with correct CORS headers                                                                          |
+| A09               | Rate limited subscription create                             | 429 with stable `RATE_LIMITED` code                                                                    |
+| A10               | POST request-management-link for unknown address             | Generic 202 and no email send                                                                          |
+| A17               | POST /api/admin/orchestration/run with valid secret          | invokes the same bounded runner as Cron; 401 if invalid auth; repeated requests remain safe/idempotent |
+| A12               | PATCH preferences: set notify_announced=true                 | confirmed in response                                                                                  |
 
 ### Extension Tests
 
-| #   | Test                                                 | Expected                                        |
-| --- | ---------------------------------------------------- | ----------------------------------------------- |
-| E01 | Expanded form contains exactly two checkboxes        | Only 70% and announced visible                  |
-| E02 | Both checkboxes selected by default                  | Default UI state correct                        |
-| E03 | No 90% option is rendered                            | 90% alert completely absent                     |
-| E04 | No Reset completed option is rendered                | Completed alert completely absent               |
-| E05 | Both unchecked disables submit                       | Validation prevents empty preferences           |
-| E06 | Checkbox interaction does not collapse panel         | Stays open during selection                     |
-| E07 | pending_confirmation state: "Check your inbox" shown | Correct UI state                                |
-| E08 | Backend reports active after email confirmation      | Extension polls status; updates to active state |
-| E09 | Double submit: second click while submitting         | Button disabled; no duplicate request           |
-| E10 | Source unavailable: popup uses cached status         | Stale indicator shown, no crash                 |
+| #   | Test                                          | Expected                                      |
+| --- | --------------------------------------------- | --------------------------------------------- |
+| E01 | Expanded form contains exactly two checkboxes | Only 70% and announced visible                |
+| E02 | Both checkboxes selected by default           | Default UI state correct                      |
+| E03 | No 90% option is rendered                     | 90% alert completely absent                   |
+| E04 | No Reset completed option is rendered         | Completed alert completely absent             |
+| E05 | Both unchecked disables submit                | Validation prevents empty preferences         |
+| E06 | Checkbox interaction does not collapse panel  | Stays open during selection                   |
+| E07 | Accepted subscription response                | Generic “check your inbox” state shown        |
+| E08 | Management-link request                       | Generic response; raw token is never rendered |
+| E09 | Double submit: second click while submitting  | Button disabled; no duplicate request         |
+| E10 | Source unavailable: popup uses cached status  | Stale indicator shown, no crash               |
 
 ### Security Tests
 
-| #          | Test                                                  | Expected                                      |
-| ---------- | ----------------------------------------------------- | --------------------------------------------- |
-| SEC01      | D1 does not contain raw confirmation tokens           | Only SHA-256 hash stored                      |
-| SEC02      | D1 does not contain raw management tokens             | Only SHA-256 hash stored                      |
-| SEC03      | GET /api/status response: no subscriber data          | No email, no token in response                |
-| SEC04      | SQL injection payload in email field                  | Treated as literal value; parameterized query |
-| SEC05      | Unsubscribe link with tampered payload                | HMAC verification fails; error rendered       |
-| SEC06      | Old token version in unsubscribe link                 | Rejected (tokenVersion mismatch)              |
-| SEC07      | Management endpoint called with no token              | 401                                           |
-| SEC08      | Management endpoint called with expired/rotated token | 401                                           |
-| ---d token | 401                                                   |
+| #     | Test                                                  | Expected                                      |
+| ----- | ----------------------------------------------------- | --------------------------------------------- |
+| SEC01 | D1 does not contain raw confirmation tokens           | Only SHA-256 hash stored                      |
+| SEC02 | D1 does not contain raw management tokens             | Only SHA-256 hash stored                      |
+| SEC03 | GET /api/status response: no subscriber data          | No email, no token in response                |
+| SEC04 | SQL injection payload in email field                  | Treated as literal value; parameterized query |
+| SEC05 | Malformed bearer management token                     | Rejected without token or secret leakage      |
+| SEC06 | Revoked or expired management token                   | Rejected with 401                             |
+| SEC07 | Management endpoint called with no token              | 401                                           |
+| SEC08 | Management endpoint called with expired/rotated token | 401                                           |
 
 ---
 

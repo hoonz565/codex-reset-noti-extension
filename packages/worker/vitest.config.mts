@@ -7,4 +7,8 @@ export default defineConfig({
       wrangler: { configPath: './wrangler.toml' },
     }),
   ],
+  test: {
+    // Resource-control decision: one worker prevents concurrent D1 database conflicts.
+    maxWorkers: 1,
+  },
 });

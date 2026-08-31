@@ -125,10 +125,11 @@ describe('Delivery Preparation Service', () => {
   });
 
   it('DEL-PREP-6: Preparation does not call email provider', async () => {
-    // There is no provider injected into DeliveryPreparationService, so it cannot call it.
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
     await createSub('sub1', true);
     await prepService.prepareDeliveries('evt1', now);
-    expect(true).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
   });
 
   it('DEL-PREP-7: Preparation preserves event and subscriber references', async () => {

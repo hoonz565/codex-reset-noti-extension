@@ -5,13 +5,44 @@ compatibility_date = "2024-03-20"
 [vars]
 ENVIRONMENT = "development"
 ALLOWED_ORIGINS = "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://untrusted-client-id,chrome-extension://local-test-id"
-ADMIN_API_TOKEN = "test-admin-secret"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["*/15 * * * *"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "codex_reset_dev"
 database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[env.staging]
+name = "codex-reset-notifier-staging"
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc"
+MANAGEMENT_PAGE_URL = "https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev/manage"
+# ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env staging`
+# RATE_LIMIT_SECRET is bound via `wrangler secret put RATE_LIMIT_SECRET --env staging`
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "codex_reset_staging"
+database_id = "6a5407b3-0ed5-4f16-bfc5-9322a37e7e12"
+migrations_dir = "migrations"
+
+[env.production]
+name = "codex-reset-notifier"
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "chrome-extension://oecegicjjbjgdaipabophafmkgaieohl"
+EMAIL_FROM_ADDRESS = "Codex Reset Notifier <alerts@notidex.click>"
+MANAGEMENT_PAGE_URL = "https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/manage"
+# ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env production`
+# EMAIL_PROVIDER_API_KEY is bound via `wrangler secret put EMAIL_PROVIDER_API_KEY --env production`
+# RATE_LIMIT_SECRET is bound via `wrangler secret put RATE_LIMIT_SECRET --env production`
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "codex_reset_prod"
+database_id = "e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61"
 migrations_dir = "migrations"

@@ -106,7 +106,18 @@ describe('Phase 4 - EV-CYCLE explicitly', () => {
   });
 
   test('EV-CYCLE-7: Guard ensures exact single commit for transition', async () => {
-    expect(true).toBe(true);
+    const cycleCounts = await db
+      .prepare(
+        "SELECT SUM(CASE WHEN id = 'cycle:new' THEN 1 ELSE 0 END) AS target_count, SUM(CASE WHEN state = 'active' THEN 1 ELSE 0 END) AS active_count FROM reset_cycles"
+      )
+      .first<{ target_count: number; active_count: number }>();
+    const auditCount = await db
+      .prepare("SELECT COUNT(*) AS count FROM audit_events WHERE type = 'CYCLE_TRANSITION'")
+      .first<{ count: number }>();
+
+    expect(cycleCounts?.target_count).toBe(1);
+    expect(cycleCounts?.active_count).toBe(1);
+    expect(auditCount?.count).toBe(1);
   });
 
   test('EV-CYCLE-ASSOC-5: Snapshot belongs to unexpected cycle fails', async () => {
@@ -133,12 +144,42 @@ describe('Phase 4 - EV-CYCLE explicitly', () => {
   });
 
   test('EV-CYCLE-8: Unavailable cannot transition', async () => {
-    expect(true).toBe(true);
+    await db.prepare("UPDATE reset_cycles SET state = 'completed' WHERE state = 'active'").run();
+    await db
+      .prepare(
+        "INSERT INTO reset_cycles (id, state, created_at, updated_at) VALUES ('cycle:unavailable', 'active', '2023-01-01T00:00:00Z', '2023-01-01T00:00:00Z')"
+      )
+      .run();
+    await db
+      .prepare(
+        "INSERT INTO source_snapshots (id, reset_cycle_id, payload_hash, checked_at, meaningful_change, created_at, lifecycle, source_health, probability) VALUES ('snap:unavailable', 'cycle:unavailable', 'hash-unavailable', '2023-01-01T00:00:00Z', 1, '2023-01-01T00:00:00Z', 'none', 'unavailable', 60)"
+      )
+      .run();
+
+    const result = await tx.performCycleTransition(
+      getAuditParams(crypto.randomUUID(), 'cycle:unavailable'),
+      'cycle:unavailable',
+      '2023-01-02T00:00:00Z',
+      getCycleParams('cycle:should-not-exist'),
+      'snap:unavailable'
+    );
+    expect(result.outcome).toBe('stale_precondition');
+    expect((await cycleRepo.findById('cycle:unavailable'))?.state).toBe('active');
+    expect(await cycleRepo.findById('cycle:should-not-exist')).toBeNull();
   });
   test('EV-CYCLE-9: timestamps remain valid ISO', async () => {
-    expect(true).toBe(true);
+    const cycles = await db
+      .prepare('SELECT created_at, updated_at, completed_at FROM reset_cycles')
+      .all<{ created_at: string; updated_at: string; completed_at: string | null }>();
+    for (const cycle of cycles.results) {
+      expect(Number.isNaN(Date.parse(cycle.created_at))).toBe(false);
+      expect(Number.isNaN(Date.parse(cycle.updated_at))).toBe(false);
+      if (cycle.completed_at) expect(Number.isNaN(Date.parse(cycle.completed_at))).toBe(false);
+    }
   });
   test('EV-CYCLE-10: transition_token is used', async () => {
-    expect(true).toBe(true);
+    const transitioned = await cycleRepo.findById('cycle:old');
+    expect(transitioned?.transition_token).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(transitioned?.state).toBe('completed');
   });
 });

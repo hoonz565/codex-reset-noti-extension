@@ -20,7 +20,13 @@ export class SubscriptionManagementService {
   async requestManagementLink(
     rawEmail: string,
     ctx: SubscriptionContext
-  ): Promise<{ outcome: 'accepted_prepared' | 'cooldown_suppressed' | 'rate_limited' }> {
+  ): Promise<
+    | {
+        outcome: 'accepted_prepared';
+        delivery?: { recipient: string; rawManagementToken: string };
+      }
+    | { outcome: 'cooldown_suppressed' | 'rate_limited' }
+  > {
     const normalizedEmail = EmailNormalizer.normalize(rawEmail);
 
     const hourly = await this.rateLimitPolicy.checkAndIncrement(
@@ -95,7 +101,13 @@ export class SubscriptionManagementService {
       ctx.now.toISOString()
     );
 
-    return { outcome: 'accepted_prepared' };
+    return {
+      outcome: 'accepted_prepared',
+      delivery: {
+        recipient: subscriber.email,
+        rawManagementToken: mgmtToken.rawBase64Url,
+      },
+    };
   }
 
   private async authenticate(rawToken: string, ctx: SubscriptionContext) {
@@ -108,13 +120,20 @@ export class SubscriptionManagementService {
 
     const tokenRow = await this.tokenRepo.findByHash(tokenHash);
     if (!tokenRow || tokenRow.purpose !== 'manage_subscription' || tokenRow.revoked_at) {
-      await this.rateLimitPolicy.checkAndIncrement(
+      const limit = await this.rateLimitPolicy.checkAndIncrement(
         ctx.ipAddress,
         'mgmt_failure_ip',
         10,
         900,
         ctx.now
       );
+      if (!limit.allowed) {
+        throw new SubscriptionError(
+          'RATE_LIMITED',
+          'Too many failed management attempts. Please try again later.',
+          429
+        );
+      }
       throw new SubscriptionError('UNAUTHORIZED', 'Invalid or revoked token', 401);
     }
 

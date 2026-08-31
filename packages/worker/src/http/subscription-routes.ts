@@ -14,8 +14,13 @@ import { DbTransactions } from '../db/transactions';
 import { RateLimitPolicy } from '../subscriptions/rate-limit-policy';
 import { SubscriptionResponses } from './subscription-responses';
 import { SubscriptionError } from '../subscriptions/subscription-errors';
+import { SubscriptionMailer } from '../services/subscription-mailer';
 
-export function createSubscriptionRouter(db: D1Database, hmacSecret: string) {
+export function createSubscriptionRouter(
+  db: D1Database,
+  hmacSecret: string,
+  subscriptionMailer?: SubscriptionMailer
+) {
   const subscriberRepo = new SubscriberRepository(db);
   const tokenRepo = new SubscriptionTokenRepository(db);
   const rateLimitRepo = new RateLimitRepository(db);
@@ -106,6 +111,17 @@ export function createSubscriptionRouter(db: D1Database, hmacSecret: string) {
             return SubscriptionResponses.error('Too many requests', 429, 'RATE_LIMITED');
           }
 
+          if (
+            subscriptionMailer &&
+            (result.outcome === 'confirmation_prepared' ||
+              result.outcome === 'resubscription_pending')
+          ) {
+            await subscriptionMailer.sendConfirmation(
+              parsed.data.email,
+              result.rawConfirmationToken
+            );
+          }
+
           return SubscriptionResponses.genericAccepted();
         } catch (e) {
           return handleError(e);
@@ -121,9 +137,12 @@ export function createSubscriptionRouter(db: D1Database, hmacSecret: string) {
           }
 
           const ctx = getContext(request);
-          await confirmService.confirm(parsed.data.token, ctx);
+          const result = await confirmService.confirm(parsed.data.token, ctx);
 
-          return SubscriptionResponses.success({ success: true });
+          return SubscriptionResponses.success({
+            success: true,
+            managementToken: result.managementToken.rawBase64Url,
+          });
         } catch (e) {
           return handleError(e);
         }
@@ -142,6 +161,13 @@ export function createSubscriptionRouter(db: D1Database, hmacSecret: string) {
 
           if (result.outcome === 'rate_limited') {
             return SubscriptionResponses.error('Too many requests', 429, 'RATE_LIMITED');
+          }
+
+          if (subscriptionMailer && result.outcome === 'accepted_prepared' && result.delivery) {
+            await subscriptionMailer.sendManagementLink(
+              result.delivery.recipient,
+              result.delivery.rawManagementToken
+            );
           }
 
           return SubscriptionResponses.genericAccepted();

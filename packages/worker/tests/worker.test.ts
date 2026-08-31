@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import worker from '../src/index';
 import { setupTestDb } from './db/test-utils';
 
@@ -12,13 +12,23 @@ describe('Worker API Spike', () => {
     RATE_LIMIT_SECRET: 'test-secret',
   };
   const allowedOrigin = 'chrome-extension://untrusted-client-id';
+  let backgroundPromises: Promise<any>[] = [];
   const ctx = {
-    waitUntil: () => {},
+    waitUntil: (p: Promise<any>) => {
+      backgroundPromises.push(p);
+    },
     passThroughOnException: () => {},
   } as unknown as ExecutionContext;
 
   beforeAll(async () => {
     await setupTestDb();
+  });
+
+  afterEach(async () => {
+    if (backgroundPromises.length > 0) {
+      await Promise.all(backgroundPromises);
+      backgroundPromises = [];
+    }
   });
 
   const request = (method: string, path: string, origin?: string, body?: unknown) => {

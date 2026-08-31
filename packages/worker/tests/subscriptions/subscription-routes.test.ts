@@ -4,6 +4,9 @@ import { createSubscriptionRouter } from '../../src/http/subscription-routes';
 
 import { TokenService } from '../../src/subscriptions/token-service';
 import { SubscriberRepository } from '../../src/db/repositories/SubscriberRepository';
+import { MockEmailProvider } from '../../src/email/providers/mock-email-provider';
+import { SubscriptionEmailRenderer } from '../../src/email/subscription-email-renderer';
+import { SubscriptionMailer } from '../../src/services/subscription-mailer';
 
 describe('Subscription Routes', () => {
   let db: D1Database;
@@ -90,6 +93,7 @@ describe('Subscription Routes', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
+    expect(body.managementToken).toEqual(expect.any(String));
   });
 
   it('SUB-HTTP-4: POST /api/subscriptions/confirm returns 400 for bad token', async () => {
@@ -236,5 +240,68 @@ describe('Subscription Routes', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
+  });
+
+  it('SUB-HTTP-11: queues a confirmation email while keeping the public response generic', async () => {
+    const provider = new MockEmailProvider();
+    const mailRouter = createSubscriptionRouter(
+      db,
+      'secret',
+      new SubscriptionMailer(
+        provider,
+        new SubscriptionEmailRenderer('https://notify.example/manage')
+      )
+    );
+    const req = makeRequest('POST', '/api/subscriptions', {
+      email: 'person@example.com',
+      preferences: { probability70: true, resetAnnounced: true },
+    });
+
+    const res = await mailRouter.handle(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(202);
+    expect(body).toEqual({
+      accepted: true,
+      message: 'If the request is valid, it has been processed.',
+    });
+    expect(JSON.stringify(body)).not.toContain('token');
+    expect(provider.calls).toHaveLength(1);
+    expect(provider.calls[0].to).toBe('person@example.com');
+    expect(provider.calls[0].text).toContain('/confirm?token=');
+  });
+
+  it('SUB-HTTP-12: queues a secure management email for an existing subscriber', async () => {
+    await subRepo
+      .getCreateStatement({
+        id: 'sub-manage',
+        email: 'manage@example.com',
+        normalized_email: 'manage@example.com',
+        state: 'active',
+        notify_70: true,
+        notify_announced: true,
+        management_token_hash: 'none',
+        created_at: new Date().toISOString(),
+      })
+      .run();
+    const provider = new MockEmailProvider();
+    const mailRouter = createSubscriptionRouter(
+      db,
+      'secret',
+      new SubscriptionMailer(
+        provider,
+        new SubscriptionEmailRenderer('https://notify.example/manage')
+      )
+    );
+
+    const res = await mailRouter.handle(
+      makeRequest('POST', '/api/subscriptions/request-management-link', {
+        email: 'manage@example.com',
+      })
+    );
+
+    expect(res.status).toBe(202);
+    expect(provider.calls).toHaveLength(1);
+    expect(provider.calls[0].text).toContain('/manage?token=');
   });
 });

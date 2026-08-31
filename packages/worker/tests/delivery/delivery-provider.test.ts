@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MockEmailProvider } from '../../src/email/providers/mock-email-provider';
+import { ConfiguredEmailProvider } from '../../src/email/providers/configured-email-provider';
 
 describe('Delivery Provider', () => {
   let provider: MockEmailProvider;
@@ -62,9 +63,25 @@ describe('Delivery Provider', () => {
   });
 
   it('DEL-PROVIDER-5: Native exception does not escape the adapter.', async () => {
-    // The mock provider shouldn't throw normally, but we can verify processNextDueDelivery catches
-    // provider.send throw elsewhere. Here we just expect provider to return typed results.
-    expect(true).toBe(true);
+    const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(new Error('native secret detail'));
+    const configuredProvider = new ConfiguredEmailProvider(
+      're_test',
+      'alerts@example.com',
+      fetchMock
+    );
+
+    await expect(
+      configuredProvider.send({
+        to: 'test@example.com',
+        subject: 'Test',
+        html: '<p>Test</p>',
+        text: 'Test',
+      })
+    ).resolves.toEqual({
+      outcome: 'retryable_failure',
+      code: 'NETWORK_ERROR',
+      retryAfterSeconds: null,
+    });
   });
 
   it('DEL-PROVIDER-6: Automated tests perform no real network email send.', async () => {

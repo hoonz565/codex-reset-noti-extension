@@ -1,9 +1,13 @@
 # API Contracts — Codex Reset Notifier
 
-> **Version:** 0.6 (Product Alignment — Two-Alert MVP)  
-> **Base URL (production):** `https://api.codex-reset-notifier.workers.dev` (or custom domain)  
-> **Base URL (development):** `http://localhost:8787`  
-> **Changes from v0.5:** Removed `probability90` and `resetCompleted`. `GET /api/status` uses `PublicStatusResponse` wrapper. `CodexResetStatus` timestamps are strictly non-null.
+> **Version:** 1.0 (implemented contract)
+>
+> **Base URL (production):** `https://api.codex-reset-notifier.workers.dev` (or custom domain)
+>
+> **Base URL (development):** `http://localhost:8787`
+>
+> **Current contract:** Exactly two alert preferences, generic anti-enumeration request responses,
+> hashed confirmation/management tokens, hosted confirm/manage pages, and protected admin routes.
 
 ---
 
@@ -11,35 +15,33 @@
 
 ### Endpoint Classification
 
-| Endpoint                                          | Class              | CORS Policy                                      |
-| ------------------------------------------------- | ------------------ | ------------------------------------------------ |
-| `GET /api/status`                                 | Public read        | Allow all origins (no credentials)               |
-| `POST /api/subscriptions`                         | Public write       | Allow configured extension origin + web frontend |
-| `GET /confirm`                                    | Browser navigation | No CORS needed (full page)                       |
-| `GET /unsubscribe`                                | Browser navigation | No CORS needed (full page)                       |
-| `GET /api/subscriptions/:id/status`               | Authenticated      | Allow extension origin, require management token |
-| `PATCH /api/subscriptions/:id/preferences`        | Authenticated      | Allow extension origin, require management token |
-| `POST /api/subscriptions/:id/resend-confirmation` | Authenticated      | Allow extension origin, require management token |
-| `POST /api/subscriptions/:id/unsubscribe`         | Authenticated      | Allow extension origin, require management token |
-| `POST /admin/*`                                   | Internal           | No browser CORS                                  |
+| Endpoint                                          | Class               | CORS Policy                                  |
+| ------------------------------------------------- | ------------------- | -------------------------------------------- |
+| `GET /api/status`                                 | Public read         | Public response; configured origins get CORS |
+| `POST /api/subscriptions`                         | Public write        | Configured extension or same-origin web page |
+| `POST /api/subscriptions/confirm`                 | Token-authenticated | Configured extension or same-origin web page |
+| `POST /api/subscriptions/request-management-link` | Public write        | Configured extension or same-origin web page |
+| `GET/PATCH /api/subscriptions/manage`             | Authenticated       | Require bearer management token              |
+| `POST /api/subscriptions/unsubscribe`             | Authenticated       | Require bearer management token              |
+| `GET /confirm`, `GET /manage`                     | Browser navigation  | Same-origin no-store pages                   |
+| `GET /api/admin/metrics`                          | Internal            | CORS allowed origin plus admin bearer token  |
+| `POST /api/admin/orchestration/run`               | Internal            | CORS allowed origin plus admin bearer token  |
 
 ### Allowed Extension Origins
 
 ```
-CORS_ALLOWED_EXTENSION_IDS=abc123...  (Wrangler env var, comma-separated)
+ALLOWED_ORIGINS=chrome-extension://abc123...  (Wrangler env var, comma-separated)
 ```
 
 **Rule:** CORS is not authentication. All authenticated endpoints validate the management token regardless of origin.  
-**Rule:** No wildcard credentialed CORS.  
-**Rule:** `Access-Control-Allow-Credentials: true` only for authenticated endpoints and allowed extension origin.
+**Rule:** No wildcard credentialed CORS and no cookie authentication.
 
 ### Preflight Handling
 
 ```
 Access-Control-Allow-Origin: chrome-extension://<extension-id>
 Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization, X-Installation-Id
-Access-Control-Max-Age: 86400
+Access-Control-Allow-Headers: Content-Type, Authorization
 ```
 
 ---
@@ -120,88 +122,64 @@ ETag: <sha256 of response body>
 
 ### POST /api/subscriptions
 
-**Request (MVP — exactly two alert keys):**
+**Request (exactly two preference keys):**
 
 ```json
 {
   "email": "user@gmail.com",
-  "alerts": {
+  "preferences": {
     "probability70": true,
     "resetAnnounced": true
   },
-  "source": "chrome_extension",
   "installationId": "client-generated-random-id"
 }
 ```
 
 **Validation:**
 
-- `email`: required, valid format, ≤ 254 chars
-- `alerts`: required, at least one must be `true`
-- `alerts.probability70`: boolean, defaults to `true`
-- `alerts.resetAnnounced`: boolean, defaults to `true`
-- **`alerts.probability90`: REJECTED — unsupported field, return 400**
-- **`alerts.resetCompleted`: REJECTED — unsupported field, return 400**
-- Unknown alert keys: rejected with 400
-- `source`: optional, max 32 chars, alphanumeric + underscore
+- `email`: required and valid.
+- `preferences`: required; at least one option must be `true`.
+- `preferences.probability70` and `preferences.resetAnnounced`: required booleans.
+- `probability90`, `resetCompleted`, and all unknown keys: rejected with 400.
 - `installationId`: optional, untrusted, heuristic rate limiting only
 
-**Response 201 (new subscriber):**
+**Response 202 (all accepted requests):**
 
 ```json
 {
-  "ok": true,
-  "subscription": {
-    "id": "01JXYZ...",
-    "state": "pending_confirmation"
-  },
-  "managementToken": "high-entropy-opaque-token-48-chars-minimum",
-  "message": "Check your inbox to confirm your alerts."
+  "accepted": true,
+  "message": "If the request is valid, it has been processed."
 }
 ```
 
-**Response 200 (existing pending subscriber — resent confirmation):**
-
-```json
-{
-  "ok": true,
-  "subscription": {
-    "id": "01JXYZ...",
-    "state": "pending_confirmation"
-  },
-  "managementToken": "same-or-rotated-token",
-  "message": "A new confirmation email has been sent to your address."
-}
-```
-
-**Response 200 (existing active subscriber):**
-
-```json
-{
-  "ok": true,
-  "subscription": {
-    "id": "01JXYZ...",
-    "state": "active"
-  },
-  "message": "This email is already subscribed. Use your management token to update preferences."
-}
-```
-
-**Response 400 (unsupported alert key):**
-
-```json
-{
-  "ok": false,
-  "code": "UNSUPPORTED_ALERT_KEY",
-  "message": "The alert key 'probability90' is not supported in the current version."
-}
-```
-
-**Rate limits:** 3 creates per normalized email per 24h; 3 resends per email per 30 min → 429.
+The response is deliberately generic to prevent account enumeration. A 24-hour confirmation token is
+stored only as a hash; the raw token is sent through the configured email provider. Rate limits apply
+per IP and normalized email, including a five-minute resend cooldown.
 
 ---
 
-### GET /api/subscriptions/:id/status
+### POST /api/subscriptions/confirm
+
+**Request:**
+
+```json
+{ "token": "raw-confirmation-token" }
+```
+
+**Response 200:**
+
+```json
+{
+  "success": true,
+  "managementToken": "new-opaque-management-token"
+}
+```
+
+The confirmation token is single-use. Possession of it is required to receive the management token.
+
+---
+
+### GET /api/subscriptions/manage
 
 **Authentication:** `Authorization: Bearer <managementToken>`
 
@@ -209,18 +187,12 @@ ETag: <sha256 of response body>
 
 ```json
 {
-  "ok": true,
-  "subscription": {
-    "id": "01JXYZ...",
-    "state": "active",
-    "maskedEmail": "us***@gmail.com",
-    "alerts": {
-      "probability70": true,
-      "resetAnnounced": true
-    },
-    "confirmedAt": "2026-07-18T10:00:00.000Z",
-    "resetCycleId": "cycle:2026-07-18T03:58:44.000Z"
-  }
+  "state": "active",
+  "preferences": {
+    "probability70": true,
+    "resetAnnounced": true
+  },
+  "updatedAt": "2026-07-18T10:00:00.000Z"
 }
 ```
 
@@ -228,15 +200,14 @@ ETag: <sha256 of response body>
 
 ```json
 {
-  "ok": false,
-  "code": "INVALID_MANAGEMENT_TOKEN",
-  "message": "Access denied."
+  "error": "Invalid or revoked token",
+  "code": "UNAUTHORIZED"
 }
 ```
 
 ---
 
-### PATCH /api/subscriptions/:id/preferences
+### PATCH /api/subscriptions/manage
 
 **Authentication:** `Authorization: Bearer <managementToken>`
 
@@ -244,7 +215,7 @@ ETag: <sha256 of response body>
 
 ```json
 {
-  "alerts": {
+  "preferences": {
     "probability70": true,
     "resetAnnounced": false
   }
@@ -263,57 +234,48 @@ ETag: <sha256 of response body>
 
 ```json
 {
-  "ok": true,
-  "subscription": {
-    "id": "01JXYZ...",
-    "alerts": {
-      "probability70": true,
-      "resetAnnounced": false
-    }
+  "state": "active",
+  "preferences": {
+    "probability70": true,
+    "resetAnnounced": false
   },
-  "message": "Alert preferences updated."
+  "updatedAt": "2026-07-18T10:05:00.000Z"
 }
 ```
 
 ---
 
-### POST /api/subscriptions/:id/resend-confirmation
+### POST /api/subscriptions/request-management-link
 
-**Authentication:** `Authorization: Bearer <managementToken>`
+**Request:**
 
-**Response 200:**
+```json
+{ "email": "user@gmail.com" }
+```
+
+**Response 202:**
 
 ```json
 {
-  "ok": true,
-  "message": "A new confirmation email has been sent.",
-  "retryAfterSeconds": 1800
+  "accepted": true,
+  "message": "If the request is valid, it has been processed."
 }
 ```
 
-**Response 429 (cooldown):**
-
-```json
-{
-  "ok": false,
-  "code": "CONFIRMATION_RECENTLY_SENT",
-  "message": "A confirmation email was recently sent.",
-  "retryAfterSeconds": 1620
-}
-```
+The response remains generic for unknown addresses. Existing subscribers receive a 30-day management
+link by email; raw tokens are never returned from this endpoint.
 
 ---
 
-### POST /api/subscriptions/:id/unsubscribe
+### POST /api/subscriptions/unsubscribe
 
-**Authentication:** `Authorization: Bearer <managementToken>` OR valid signed unsubscribe link.
+**Authentication:** `Authorization: Bearer <managementToken>`.
 
 **Response 200:**
 
 ```json
 {
-  "ok": true,
-  "message": "You have been unsubscribed."
+  "success": true
 }
 ```
 
@@ -323,45 +285,27 @@ ETag: <sha256 of response body>
 
 ### GET /confirm?token=<raw-confirmation-token>
 
-Returns HTML page.
+Returns a no-store HTML page with a confirmation button. The GET request does not mutate state, which
+prevents link scanners from confirming a subscription. The page submits the token to
+`POST /api/subscriptions/confirm`, then replaces its location with
+`/manage?token=<new-management-token>`.
 
-**Flow:**
+### GET /manage[?token=<raw-management-token>]
 
-1. Hash the token
-2. Look up `confirmation_token_hash`
-3. Check expiry (`confirmation_expires_at`)
-4. **Valid:** `state = active`, `confirmed_at = now`, clear token hash → success HTML
-5. **Expired:** error HTML with resend option
-6. **Already confirmed:** idempotent success HTML (DEF-3 note: after confirmation, `confirmed_at` is non-null; second click sees `state = active` and returns success)
-
----
-
-### GET /unsubscribe?p=<payload>&s=<sig>
-
-**Signed payload:**
-
-```
-payload = base64url({ subscriberId: "01JXYZ...", tokenVersion: 1 })
-sig = HMAC-SHA256(UNSUBSCRIBE_HMAC_SECRET, payload)
-```
-
-**Flow:**
-
-1. Verify HMAC (timing-safe)
-2. Check `token_version` matches subscriber record
-3. Valid: `state = unsubscribed`, render confirmation HTML
-4. Invalid/tampered: generic error HTML
-5. Already unsubscribed: idempotent success HTML
+Returns the Worker-hosted management UI. Without a token, it displays the generic management-link
+request form. With a valid token, it loads current preferences and supports update/unsubscribe.
+Pages and their same-origin assets use a restrictive CSP, `Cache-Control: no-store`,
+`Referrer-Policy: no-referrer`, and frame denial.
 
 ---
 
 ## 6. Internal/Admin Endpoints
 
-All require `Authorization: Bearer <DISPATCH_SECRET>`. No CORS.
+All require `Authorization: Bearer <ADMIN_API_TOKEN>`. CORS never substitutes for authentication.
 
-### POST /admin/force-run
+### POST /api/admin/orchestration/run
 
-Triggers an immediate orchestration run synchronously over HTTP. Replaces the old `/admin/force-crawl`.
+Triggers the same bounded orchestration path used by the scheduled handler.
 
 **Response 200:**
 
@@ -392,30 +336,20 @@ Triggers an immediate orchestration run synchronously over HTTP. Replaces the ol
 
 ```
 Generation: crypto.getRandomValues(32 bytes) → base64url
-Storage: SHA-256(token) in confirmation_token_hash
+Storage: SHA-256(token) in subscription_tokens.token_hash
 Expiry: 24 hours
-Use: Single-use. Hash cleared after use.
+Use: Single-use. Row is marked consumed after confirmation.
 ```
 
-### B. Management Token (long-lived, extension-held)
+### B. Management Token
 
 ```
-Generation: crypto.getRandomValues(48 bytes) → base64url
-Storage: SHA-256(token) in management_token_hash
-Expiry: None (until rotated)
-Rotation: Increment token_version. Old hash replaced.
-Loss recovery: Re-subscribe with same email → new token issued.
-Returned: ONLY on creation or explicit rotation.
-```
-
-### C. Unsubscribe Link (stateless HMAC)
-
-```
-Payload: base64url({ subscriberId, tokenVersion })
-Signature: HMAC-SHA256(UNSUBSCRIBE_HMAC_SECRET, payload)
-Link format: /unsubscribe?p=<payload>&s=<sig>
-Invalidation: Increment token_version
-Security: Timing-safe comparison. Never raw email in URL.
+Generation: crypto.getRandomValues(32 bytes) → base64url
+Storage: SHA-256(token) in subscription_tokens.token_hash
+Expiry: 30 days
+Rotation: At most two active management tokens; successful use retires older tokens.
+Loss recovery: POST /api/subscriptions/request-management-link.
+Returned: Only after valid confirmation, or delivered by email after a generic link request.
 ```
 
 **Rule:** Raw tokens never stored in D1. Only hashes.
@@ -426,10 +360,8 @@ Security: Timing-safe comparison. Never raw email in URL.
 
 ```json
 {
-  "ok": false,
-  "code": "RATE_LIMIT_EXCEEDED",
-  "message": "Too many requests. Please try again later.",
-  "retryAfterSeconds": 1800
+  "error": "Too many requests",
+  "code": "RATE_LIMITED"
 }
 ```
 
