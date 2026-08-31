@@ -161,4 +161,3 @@ Runbooks to be created in `docs/runbooks/`:
 ## Current status
 
 APPROVED — ALL GATES (A, B, C, D) COMPLETE AND VERIFIED
-
