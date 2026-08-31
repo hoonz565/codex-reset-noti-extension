@@ -34,9 +34,9 @@ migrations_dir = "migrations"
 name = "codex-reset-notifier"
 [env.production.vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "chrome-extension://<PRODUCTION_EXTENSION_ID>"
-EMAIL_FROM_ADDRESS = "Codex Reset Notifier <alerts@<VERIFIED_DOMAIN>>"
-MANAGEMENT_PAGE_URL = "https://<PRODUCTION_WORKER_HOST>/manage"
+ALLOWED_ORIGINS = "chrome-extension://oecegicjjbjgdaipabophafmkgaieohl"
+EMAIL_FROM_ADDRESS = "Codex Reset Notifier <alerts@notidex.click>"
+MANAGEMENT_PAGE_URL = "https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/manage"
 # ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env production`
 # EMAIL_PROVIDER_API_KEY is bound via `wrangler secret put EMAIL_PROVIDER_API_KEY --env production`
 # RATE_LIMIT_SECRET is bound via `wrangler secret put RATE_LIMIT_SECRET --env production`
@@ -44,5 +44,5 @@ MANAGEMENT_PAGE_URL = "https://<PRODUCTION_WORKER_HOST>/manage"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "codex_reset_prod"
-database_id = "22222222-2222-2222-2222-222222222222"
+database_id = "e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61"
 migrations_dir = "migrations"

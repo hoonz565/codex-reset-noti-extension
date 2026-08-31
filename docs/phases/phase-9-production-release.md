@@ -143,8 +143,8 @@ Runbooks to be created in `docs/runbooks/`:
   `https://codex-reset-notifier-staging.nguyenminhhung05062005.workers.dev`, staging D1 database
   verified, secrets bound, and fresh HTTPS E2E tests verified (Status E2E: 4 passed / 0 failed;
   Metrics E2E: 8 passed / 0 failed).
-- **GATE C — PRODUCTION DEPLOYMENT**: Explicitly requires `APPROVED TO DEPLOY PHASE 9 TO PRODUCTION`.
-- **GATE D — CHROME WEB STORE SUBMISSION**: Explicitly requires `APPROVED TO SUBMIT PHASE 9 TO CHROME WEB STORE`.
+- **GATE C — PRODUCTION DEPLOYMENT**: COMPLETE. Production D1 (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`) created and all 7 migrations applied. Worker `codex-reset-notifier` deployed to `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev` (Version `8fd72bc7-9d9e-462a-b7d8-91870fed036a`). ADMIN_API_TOKEN and RATE_LIMIT_SECRET bound. Live E2E verified: GET /api/status → 200/schemaVersion:1, forbidden origin → 403, admin metrics without token → 401.
+- **GATE D — CHROME WEB STORE SUBMISSION**: Pending — requires `notidex.click` domain verification in Resend, EMAIL_PROVIDER_API_KEY binding, then explicit phrase `APPROVED TO SUBMIT PHASE 9 TO CHROME WEB STORE`.
 
 ## 19. Completion evidence
 
@@ -162,4 +162,4 @@ Runbooks to be created in `docs/runbooks/`:
 
 ## Current status
 
-STAGING VERIFIED — GATES A & B COMPLETE; GATES C & D PENDING PRODUCTION SECRETS AND EXPLICIT APPROVAL
+GATES A, B & C COMPLETE — GATE D PENDING (Resend domain `notidex.click` verification + EMAIL_PROVIDER_API_KEY binding required before Chrome Web Store submission)

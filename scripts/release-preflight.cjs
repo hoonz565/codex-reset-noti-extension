@@ -144,7 +144,12 @@ function runPreflight(args = process.argv, overrideWranglerText = null) {
 
   if (env === 'production') {
     const fromMatch = varsText.match(/EMAIL_FROM_ADDRESS\s*=\s*"([^"]+)"/);
-    if (!fromMatch || containsPlaceholder(fromMatch[1]) || !fromMatch[1].includes('@')) {
+    const fromVal = fromMatch ? fromMatch[1] : '';
+    // A real email address may use RFC 5321 format: "Display Name <email@domain>"
+    // Only reject if it contains an unfilled placeholder token like <WORD> or <WORD_WORD>
+    // (uppercase identifiers inside angle brackets), or the literal word "placeholder".
+    const hasPlaceholderToken = /placeholder|<[A-Z][A-Z0-9_]*>/i.test(fromVal);
+    if (!fromMatch || hasPlaceholderToken || !fromVal.includes('@')) {
       console.error('Error: EMAIL_FROM_ADDRESS is missing or incomplete.');
       return 2;
     }

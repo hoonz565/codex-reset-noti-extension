@@ -95,11 +95,9 @@ This document serves as the single canonical roadmap for the Codex Reset Notifie
 
 ## Phase 9 — Production Hardening and Release
 
-**Status:** IN PROGRESS — STAGING VERIFIED (GATES A & B COMPLETE)
+**Status:** IN PROGRESS — GATES A, B & C COMPLETE (Gate D pending Resend domain verification)
 **Suggested Branch:** `phase-9-production-release`
 
 - **Purpose:** Deploy production Worker, configure production D1, configure production extension ID and CORS, configure email provider, verify migrations, run staging tests, prepare Chrome Web Store release.
 
-Local implementation, regression verification, dependency audit, deterministic packaging, staging Worker deployment, and live staging HTTPS E2E tests are complete (727 tests, 0 failures, all 39 REL-* canonical requirements passed, live E2E 12/12 passed). Production resource values/secrets and explicit approvals are still pending.
-
-Phase 4 preserves the approved Phase 2 transition_token mechanism while extending cycle transition to associate the evidence snapshot.
+Production D1 (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`) created, all 7 migrations applied, Worker deployed to `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev`, ADMIN_API_TOKEN and RATE_LIMIT_SECRET bound, live E2E verified. Awaiting `notidex.click` domain verification in Resend → EMAIL_PROVIDER_API_KEY → Gate D Chrome Web Store submission.

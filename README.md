@@ -40,6 +40,6 @@ Cloudflare Workers + D1 based architecture to monitor and notify when the Codex 
 | Phase 6   | Notification Delivery    | APPROVED                                              | `phase-6-email-delivery`          |
 | Phase 7   | Cron Orchestration       | APPROVED                                              | `phase-7-orchestration-cron`      |
 | Phase 8   | Dashboard, Metrics & UI  | APPROVED                                              | `phase-8-dashboard-metrics`       |
-| Phase 9   | Production Release       | IN PROGRESS — STAGING VERIFIED (GATES A & B COMPLETE) | `phase-9-production-release`      |
+| Phase 9   | Production Release       | IN PROGRESS — GATES A, B & C COMPLETE (GATE D PENDING)        | `phase-9-production-release`      |
 
-Phase 9 Gates A and B are complete (727 tests pass, staging Worker deployed to Cloudflare, and live HTTPS E2E tests verified). Gates C and D require production configuration plus the explicit approval phrases documented in the [Phase 9 plan](docs/phases/phase-9-production-release.md).
+Phase 9 Gates A, B, and C are complete (727 tests pass, staging Worker deployed, production Worker deployed to `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev`, all 7 D1 migrations applied, ADMIN_API_TOKEN and RATE_LIMIT_SECRET bound). Gate D (Chrome Web Store submission) requires the Resend domain `notidex.click` to be verified and `EMAIL_PROVIDER_API_KEY` bound, followed by the explicit approval phrase documented in the [Phase 9 plan](docs/phases/phase-9-production-release.md).
