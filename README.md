@@ -1,6 +1,6 @@
 # Codex Reset Notifier
 
-> **Chrome Extension & Serverless Backend** to monitor OpenAI Codex quota reset cycles and send timely email alerts.
+> **Chrome Extension & Serverless Cloud Platform** to monitor OpenAI Codex quota reset cycles in real-time and deliver instant email alerts.
 
 [![CI Tests](https://img.shields.io/badge/Tests-727%20Passed-success?style=flat-square)](docs/testing-strategy.md)
 [![Cloudflare Workers](https://img.shields.io/badge/Backend-Cloudflare%20Workers-orange?style=flat-square)](https://workers.cloudflare.com)
@@ -10,60 +10,47 @@
 
 ---
 
+<p align="center">
+  <img src="docs/images/extension-popup.png" alt="Codex Reset Notifier Chrome Extension UI" width="360" style="border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
+</p>
+
+---
+
 ## 📖 Overview
 
-**Codex Reset Notifier** is an end-to-end monitoring and notification platform designed for developers and AI engineers who rely on OpenAI Codex quota resets. Instead of constantly checking status pages manually, this tool tracks quota reset likelihood automatically and delivers alerts straight to your inbox.
+**Codex Reset Notifier** is an end-to-end monitoring and notification platform built for developers and AI engineers who rely on OpenAI Codex quota resets. Instead of constantly checking status pages manually, this extension tracks quota reset likelihood automatically and delivers alerts straight to your inbox.
 
-- **Frontend:** Chrome Extension (Manifest V3) with a popup dashboard showing real-time reset probability, cycle status, and notification management.
-- **Backend:** Cloudflare Workers running every 15 minutes via Cron triggers, backed by a Cloudflare D1 SQL database.
-- **Delivery:** Transactional emails powered by Resend with SPF/DKIM verified domain (`notidex.click`).
+- **Frontend:** Chrome Extension (Manifest V3) with a modern, high-density dashboard featuring a circular likelihood gauge, live status, and one-click subscription management.
+- **Backend:** Cloudflare Workers running every 15 minutes via Cron triggers, backed by a resilient Cloudflare D1 SQL database.
+- **Delivery:** Transactional email alerts powered by Resend with SPF/DKIM verified domain (`alerts@notidex.click`).
 
 ---
 
 ## ✨ Key Features
 
-### 1. 📊 Live Reset Forecast & Status
+### 1. 📊 Real-Time Forecast & Gauge Dashboard
 
-- **Real-Time Probability:** View current reset probability percentage (0–100%) and cycle health status.
-- **Cycle Tracking:** Displays time elapsed since the last reset and when the next background check occurs.
-- **State Badges:** Instant visual indicators (`PROBABILITY_REACHED_70`, `RESET_ANNOUNCED`, etc.).
+- **Dynamic Circular Gauge:** Displays current quota reset probability (0–100%) with an animated progress meter.
+- **Freshness & Status Indicators:** Visual health badges (`Fresh`, `Stale`, `Unavailable`) and instant last-checked timestamps.
+- **Announcement Detection:** Tracks whether an official reset has been announced.
+- **Manual Refresh:** On-demand status refresh with rate-limit protections and duplicate request prevention.
 
 ### 2. 🔔 Dual Smart Alert System
 
-Supports two subscriber-facing notification triggers:
+- **Likelihood reaches ≥ 70% (`PROBABILITY_REACHED_70`):** Advance warning notification allowing you to prepare your workflows.
+- **Reset is announced (`RESET_ANNOUNCED`):** Immediate alert when an official reset is confirmed.
 
-- **`PROBABILITY_REACHED_70`**: Triggered when reset likelihood crosses **≥ 70%** — giving you advance notice to prepare your workload.
-- **`RESET_ANNOUNCED`**: Triggered when an official reset announcement is detected — highest precedence.
+### 3. 📧 Privacy-Preserving Email Alerts
 
-### 3. 📧 Email Subscription & Management
+- **Granular Preferences:** Subscribe to 70% threshold alerts, announcement alerts, or both.
+- **Double Opt-In Security:** Safe email confirmation flow to prevent unsolicited subscriptions.
+- **Self-Service Management:** Manage preferences or unsubscribe permanently anytime at `/manage`.
 
-- **Granular Preferences:** Choose to receive 70% probability alerts, announcement alerts, or both.
-- **Secure Confirmation Flow:** Double opt-in confirmation links to prevent unauthorized subscriptions.
-- **One-Click Unsubscribe & Self-Service Portal:** Manage alert preferences or unsubscribe permanently anytime at `/manage`.
+### 4. 🛡️ Hardened Security & Zero Tracking
 
-### 4. 🛡️ Privacy & Security First
-
-- **No Direct Third-Party Access:** The Chrome Extension never talks to upstream forecast APIs directly; all requests flow through the hardened Worker API.
-- **Minimal Permissions:** Manifest V3 requests only the dedicated Worker origin.
-- **Privacy-Preserving Rate Limiting:** Subscription rate limits are computed using HMAC hashes (`RATE_LIMIT_SECRET`), never raw IP addresses or plain emails.
-- **Zero Advertising or Data Sharing:** Email addresses are strictly used for quota reset notifications.
-
----
-
-## 🏗️ Architecture & Monorepo Structure
-
-```
-codex-reset/
-├── packages/
-│   ├── shared/         # Domain models, Zod validation schemas, API contracts
-│   ├── worker/         # Cloudflare Worker API, Cron scheduler, D1 persistence, Resend integration
-│   └── extension/      # Chrome Extension MV3 popup UI & API client
-├── docs/               # Architecture, domain model, database schema, and operational runbooks
-│   ├── runbooks/       # Secrets, D1, deployment, monitoring, and rollback runbooks
-│   └── phases/         # Specifications and completion reports for Phases 0–9
-├── scripts/            # Release verification, preflight checks, and extension packaging
-└── artifacts/          # Generated deterministic verification reports & release checksums
-```
+- **Hardened Origin Routing:** Extension communicates only with the dedicated Worker API; never hits third-party APIs directly.
+- **HMAC Rate Limiting:** Rate limits use HMAC SHA-256 hashes—raw IP addresses and emails are never exposed.
+- **No Third-Party Analytics:** Zero trackers, zero ads, zero data sharing.
 
 ---
 
@@ -78,6 +65,42 @@ codex-reset/
 | **D1 Database**         | `codex_reset_prod` (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`)               |
 | **Sender Domain**       | `alerts@notidex.click` (Resend verified)                                  |
 | **Chrome Extension ID** | `oecegicjjbjgdaipabophafmkgaieohl`                                        |
+
+---
+
+## 📦 How to Install & Run the Extension
+
+### Method 1: Load Unpacked (Development / Manual Installation)
+
+1. Clone this repository or download the repository ZIP.
+2. Open Google Chrome (or any Chromium browser like Brave, Edge).
+3. Navigate to `chrome://extensions`.
+4. Turn ON **Developer mode** (toggle in the top-right corner).
+5. Click **Load unpacked** and select the [`extension-release/`](extension-release) folder from this project.
+6. Click the extension icon in your browser toolbar to open the popup dashboard.
+
+### Method 2: Packaged ZIP (Chrome Web Store format)
+
+- Ready-to-upload archive: [`extension-release.zip`](extension-release.zip)
+- SHA-256 Checksum: [`extension-release.zip.sha256`](extension-release.zip.sha256)
+
+---
+
+## 🏗️ Architecture & Monorepo Structure
+
+```
+codex-reset/
+├── packages/
+│   ├── shared/         # Domain models, Zod validation schemas, API contracts
+│   ├── worker/         # Cloudflare Worker API, Cron scheduler, D1 persistence, Resend integration
+│   └── extension/      # Chrome Extension MV3 popup UI & API client
+├── docs/               # Architecture, domain model, database schema, and operational runbooks
+│   ├── images/         # Extension UI screenshots and visual assets
+│   ├── runbooks/       # Secrets, D1, deployment, monitoring, and rollback runbooks
+│   └── phases/         # Specifications and completion reports for Phases 0–9
+├── scripts/            # Release verification, preflight checks, and extension packaging
+└── artifacts/          # Generated deterministic verification reports & release checksums
+```
 
 ---
 
