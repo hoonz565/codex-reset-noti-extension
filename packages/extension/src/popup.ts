@@ -19,6 +19,32 @@ function initStatusDashboard() {
   dashboard.mount();
 }
 
+function formatErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    // If Zod or API returned a JSON string representation of errors
+    try {
+      const parsed = JSON.parse(error.message);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const first = parsed[0];
+        if (first.path?.includes('email') || first.validation === 'email') {
+          return 'Please enter a valid email address.';
+        }
+        if (first.message) {
+          return first.message === 'Invalid email' ? 'Please enter a valid email address.' : first.message;
+        }
+      }
+    } catch {
+      // Normal error message
+    }
+
+    if (error.message.includes('Invalid email') || error.message.includes('email')) {
+      return 'Please enter a valid email address.';
+    }
+    return error.message;
+  }
+  return 'The subscription request could not be completed.';
+}
+
 async function subscribe() {
   const resultDiv = document.getElementById('sub-result')!;
   const submitButton = document.getElementById('subscribe-btn') as HTMLButtonElement;
@@ -26,12 +52,37 @@ async function subscribe() {
   const alert70 = document.getElementById('alert-70') as HTMLInputElement;
   const alertAnnounced = document.getElementById('alert-announced') as HTMLInputElement;
 
+  const email = emailInput.value.trim();
+
+  // Client-side pre-validation for clean UX
+  if (!email) {
+    resultDiv.textContent = 'Please enter your email address.';
+    resultDiv.className = 'form-message error';
+    emailInput.focus();
+    return;
+  }
+
+  // Simple email regex pre-check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    resultDiv.textContent = 'Please enter a valid email address.';
+    resultDiv.className = 'form-message error';
+    emailInput.focus();
+    return;
+  }
+
+  if (!alert70.checked && !alertAnnounced.checked) {
+    resultDiv.textContent = 'Please select at least one alert type.';
+    resultDiv.className = 'form-message error';
+    return;
+  }
+
   resultDiv.textContent = 'Submitting…';
   resultDiv.className = 'form-message';
   submitButton.disabled = true;
 
   const payload = {
-    email: emailInput.value,
+    email,
     preferences: {
       probability70: alert70.checked,
       resetAnnounced: alertAnnounced.checked,
@@ -44,8 +95,7 @@ async function subscribe() {
     resultDiv.className = 'form-message success';
     emailInput.value = '';
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error);
-    resultDiv.textContent = msg;
+    resultDiv.textContent = formatErrorMessage(error);
     resultDiv.className = 'form-message error';
   } finally {
     submitButton.disabled = false;
@@ -56,17 +106,25 @@ async function requestManagementLink() {
   const emailInput = document.getElementById('manage-email') as HTMLInputElement;
   const resultDiv = document.getElementById('manage-result')!;
   const button = document.getElementById('manage-btn') as HTMLButtonElement;
+
+  const email = emailInput.value.trim();
+  if (!email) {
+    resultDiv.textContent = 'Please enter your email address.';
+    resultDiv.className = 'form-message error';
+    return;
+  }
+
   resultDiv.textContent = 'Submitting…';
   resultDiv.className = 'form-message';
   button.disabled = true;
 
   try {
-    const message = await subscriptionClient.requestManagementLink(emailInput.value);
+    const message = await subscriptionClient.requestManagementLink(email);
     resultDiv.textContent = `${message} Check your inbox for a secure management link.`;
     resultDiv.className = 'form-message success';
     emailInput.value = '';
   } catch (error: unknown) {
-    resultDiv.textContent = error instanceof Error ? error.message : String(error);
+    resultDiv.textContent = formatErrorMessage(error);
     resultDiv.className = 'form-message error';
   } finally {
     button.disabled = false;
