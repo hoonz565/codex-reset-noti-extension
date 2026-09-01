@@ -56,15 +56,15 @@
 
 ## 🚀 Live Endpoints & Production Resources
 
-| Resource                | Value                                                                     |
-| :---------------------- | :------------------------------------------------------------------------ |
-| **Worker API URL**      | `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev`         |
-| **Status Endpoint**     | `GET /api/status`                                                         |
-| **Privacy Policy**      | `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/privacy` |
-| **Management Portal**   | `https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/manage`  |
-| **D1 Database**         | `codex_reset_prod` (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`)               |
-| **Sender Domain**       | `alerts@notidex.click` (Resend verified)                                  |
-| **Chrome Extension ID** | `oecegicjjbjgdaipabophafmkgaieohl`                                        |
+| Resource                | Value                                                   |
+| :---------------------- | :------------------------------------------------------ |
+| **Worker API URL**      | `https://notidex.click`                                 |
+| **Status Endpoint**     | `GET /api/status`                                       |
+| **Privacy Policy**      | `https://notidex.click/privacy`                         |
+| **Management Portal**   | `https://notidex.click/manage`                          |
+| **D1 Database**         | `codex_reset_prod` (`e0b99231-cd4e-4e78-bfa3-99a1b6cbdd61`) |
+| **Sender Domain**       | `alerts@notidex.click` (Resend verified)                |
+| **Chrome Extension ID** | `oecegicjjbjgdaipabophafmkgaieohl`                      |
 
 ---
 

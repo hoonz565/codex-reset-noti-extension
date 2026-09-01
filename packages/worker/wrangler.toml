@@ -36,7 +36,7 @@ name = "codex-reset-notifier"
 ENVIRONMENT = "production"
 ALLOWED_ORIGINS = "chrome-extension://oecegicjjbjgdaipabophafmkgaieohl,chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://hajpinbdfaaiiachjeofkafhedfaplnm"
 EMAIL_FROM_ADDRESS = "Codex Reset Notifier <alerts@notidex.click>"
-MANAGEMENT_PAGE_URL = "https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/manage"
+MANAGEMENT_PAGE_URL = "https://notidex.click/manage"
 # ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env production`
 # EMAIL_PROVIDER_API_KEY is bound via `wrangler secret put EMAIL_PROVIDER_API_KEY --env production`
 # RATE_LIMIT_SECRET is bound via `wrangler secret put RATE_LIMIT_SECRET --env production`
