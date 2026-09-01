@@ -56,6 +56,17 @@ if (fs.existsSync(path.join(process.cwd(), 'src', 'popup.css'))) {
   fs.copyFileSync(path.join(process.cwd(), 'src', 'popup.css'), path.join(outdir, 'popup.css'));
 }
 
+// Copy icons directory
+const iconsDir = path.join(process.cwd(), 'src', 'icons');
+if (fs.existsSync(iconsDir)) {
+  const distIconsDir = path.join(outdir, 'icons');
+  fs.mkdirSync(distIconsDir, { recursive: true });
+  for (const file of fs.readdirSync(iconsDir)) {
+    fs.copyFileSync(path.join(iconsDir, file), path.join(distIconsDir, file));
+  }
+}
+
+
 await esbuild.build({
   entryPoints: ['src/popup.ts'],
   bundle: true,
