@@ -29,7 +29,9 @@ function formatErrorMessage(error: unknown): string {
           return 'Please enter a valid email address.';
         }
         if (first.message) {
-          return first.message === 'Invalid email' ? 'Please enter a valid email address.' : first.message;
+          return first.message === 'Invalid email'
+            ? 'Please enter a valid email address.'
+            : first.message;
         }
       }
     } catch {

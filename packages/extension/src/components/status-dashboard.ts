@@ -129,7 +129,8 @@ export class StatusDashboard {
     // Compact Circle radius = 36 -> 2 * PI * 36 = 226.19
     const radius = 36;
     const circumference = 2 * Math.PI * radius;
-    const offset = clampedPct !== null ? circumference - (clampedPct / 100) * circumference : circumference;
+    const offset =
+      clampedPct !== null ? circumference - (clampedPct / 100) * circumference : circumference;
 
     const displayValue = clampedPct !== null ? `${clampedPct}` : '?';
     const displayUnit = clampedPct !== null ? `<span class="pct-sign">%</span>` : '';
@@ -177,8 +178,7 @@ export class StatusDashboard {
       return `<p class="status-badge status-empty" role="status">System has no data yet.</p>`;
     }
 
-    const probability =
-      data.state === 'unavailable' ? data.lastKnownProbability : data.probability;
+    const probability = data.state === 'unavailable' ? data.lastKnownProbability : data.probability;
 
     const gaugeHtml = this.renderLikelihoodGauge(probability);
 

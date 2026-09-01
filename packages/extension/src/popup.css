@@ -1,39 +1,37 @@
 :root {
-  --surface-page: #F7FAFF;
-  --surface-card: #FFFFFF;
+  --surface-page: #f7faff;
+  --surface-card: #ffffff;
 
-  --blue-50: #EFF6FF;
-  --blue-100: #DBEAFE;
-  --blue-200: #BFDBFE;
-  --blue-500: #3B82F6;
-  --blue-600: #2563EB;
-  --blue-700: #1D4ED8;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-200: #bfdbfe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
 
   --navy-900: #172554;
   --text-primary: #172554;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
 
-  --border-default: #E2E8F0;
-  --border-blue: #D7E5FA;
+  --border-default: #e2e8f0;
+  --border-blue: #d7e5fa;
 
-  --success: #16A34A;
-  --success-bg: #ECFDF5;
-  --success-border: #D1FAE5;
+  --success: #16a34a;
+  --success-bg: #ecfdf5;
+  --success-border: #d1fae5;
 
-  --danger: #DC2626;
-  --danger-bg: #FEF2F2;
-  --warning: #D97706;
-  --warning-bg: #FFFBEB;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
 
   --radius-card: 14px;
   --radius-control: 8px;
   --radius-button: 10px;
   --radius-pill: 999px;
 
-  --shadow-card:
-    0 1px 3px rgba(15, 23, 42, 0.03),
-    0 4px 12px rgba(37, 99, 235, 0.04);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.03), 0 4px 12px rgba(37, 99, 235, 0.04);
 }
 
 *,
@@ -86,7 +84,7 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid var(--border-blue);
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.06);
   display: flex;
@@ -203,7 +201,7 @@ body {
 
 .gauge-track {
   fill: none;
-  stroke: #EBF2FE;
+  stroke: #ebf2fe;
   stroke-width: 7;
 }
 
@@ -301,17 +299,17 @@ body {
 .status-stale {
   background: var(--warning-bg);
   color: var(--warning);
-  border: 1px solid #FEF3C7;
+  border: 1px solid #fef3c7;
 }
 
 .status-unavailable {
   background: var(--danger-bg);
   color: var(--danger);
-  border: 1px solid #FEE2E2;
+  border: 1px solid #fee2e2;
 }
 
 .status-empty {
-  background: #F1F5F9;
+  background: #f1f5f9;
   color: var(--text-secondary);
   border: 1px solid var(--border-default);
 }
@@ -376,7 +374,7 @@ body {
   width: 100%;
   height: 32px;
   background: var(--blue-600);
-  color: #FFFFFF;
+  color: #ffffff;
   border: none;
   border-radius: var(--radius-button);
   font-size: 0.78rem;
@@ -386,7 +384,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .refresh-btn:hover,
@@ -396,7 +396,7 @@ body {
 
 .refresh-btn:active,
 .btn-primary:active {
-  background: #1E40AF;
+  background: #1e40af;
   transform: scale(0.99);
 }
 
@@ -434,14 +434,16 @@ body {
   padding: 0 8px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-control);
-  background: #FAFBFC;
+  background: #fafbfc;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .alert-option-row:hover {
-  background: #F1F5F9;
-  border-color: #CBD5E1;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .alert-option-row input[type='checkbox'] {
@@ -486,9 +488,11 @@ input[type='email'] {
   border-radius: var(--radius-control);
   font-size: 0.76rem;
   color: var(--text-primary);
-  background: #FFFFFF;
+  background: #ffffff;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 input[type='email']:focus {
@@ -550,7 +554,7 @@ input[type='email']:focus {
   font-size: 0.72rem;
   margin-bottom: 4px;
   background: var(--danger-bg);
-  border: 1px solid #FEE2E2;
+  border: 1px solid #fee2e2;
   border-radius: var(--radius-control);
   padding: 4px 8px;
 }
