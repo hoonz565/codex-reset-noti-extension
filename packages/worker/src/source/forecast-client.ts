@@ -17,7 +17,7 @@ export class SourceForecastClient {
 
   constructor(options: SourceClientOptions) {
     this.url = options.url;
-    this.timeoutMs = options.timeoutMs || 5000;
+    this.timeoutMs = options.timeoutMs || 15000;
     this.maxRetries = options.maxRetries ?? 1;
     this.maxResponseBytes = options.maxResponseBytes ?? 5 * 1024 * 1024; // Default 5MB
   }
@@ -38,6 +38,9 @@ export class SourceForecastClient {
             signal: controller.signal,
             headers: {
               Accept: 'application/json',
+              'User-Agent':
+                'Mozilla/5.0 (compatible; CodexResetNotifier/1.0; +https://github.com/hoonz565/codex-reset-noti-extension)',
+              'Cache-Control': 'no-cache',
             },
           });
         } catch (e: unknown) {

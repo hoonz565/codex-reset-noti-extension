@@ -14,7 +14,7 @@ export class SubscriptionClientError extends Error {
 export class SubscriptionClient {
   constructor(
     private readonly baseUrl: string,
-    private readonly fetchImplementation: typeof fetch = fetch
+    private readonly fetchImplementation: typeof fetch = fetch.bind(globalThis)
   ) {}
 
   async subscribe(input: CreateSubscriptionRequest): Promise<string> {

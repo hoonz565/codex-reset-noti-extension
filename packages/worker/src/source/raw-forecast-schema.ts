@@ -20,10 +20,14 @@ export const RawForecastSchema = z
       .array(
         z
           .object({
-            id: z.string(),
+            id: z.string().optional(),
+            guid: z.string().optional(),
             text: z.string().optional(),
+            title: z.string().optional(),
             url: z.string().nullable().optional(),
+            link: z.string().nullable().optional(),
             publishedAt: z.string().datetime().nullable().optional(),
+            pubDate: z.string().nullable().optional(),
             category: z.string().nullable().optional(),
             tweetAssessment: z
               .object({

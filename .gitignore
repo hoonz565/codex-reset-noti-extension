@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 coverage/
+extension-release/
 extension-release.zip
 extension-release.zip.sha256
 artifacts/wrangler-dry-run.log

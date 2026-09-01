@@ -132,7 +132,7 @@ export default {
 
       const response = await handleAdminRunRequest(request, env.ADMIN_API_TOKEN || '', () => {
         const sourceClient = new SourceForecastClient({
-          url: 'https://willcodexquotareset.com/api/forecast',
+          url: 'https://www.willcodexquotareset.com/api/forecast',
         });
         const emailProvider = createEmailProvider(
           env.ENVIRONMENT || 'development',
@@ -162,7 +162,7 @@ export default {
 
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     const sourceClient = new SourceForecastClient({
-      url: 'https://willcodexquotareset.com/api/forecast',
+      url: 'https://www.willcodexquotareset.com/api/forecast',
     });
     const emailProvider = createEmailProvider(
       env.ENVIRONMENT || 'development',

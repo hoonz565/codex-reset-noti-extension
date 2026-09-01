@@ -76,5 +76,6 @@ async function requestManagementLink() {
 document.addEventListener('DOMContentLoaded', () => {
   initStatusDashboard();
   document.getElementById('subscribe-btn')?.addEventListener('click', subscribe);
+  // manage-btn is hidden — only attach if present
   document.getElementById('manage-btn')?.addEventListener('click', requestManagementLink);
 });

@@ -2,39 +2,151 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Codex Reset Notifier</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <header>
-      <h1>Codex Reset Notifier</h1>
-      <p>Unofficial community alerts for Codex quota-reset signals.</p>
+    <!-- Product Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-icon-container" aria-hidden="true">
+          <svg
+            class="app-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1 class="app-title">Codex Reset Notifier</h1>
+          <p class="app-subtitle">Unofficial community alerts for Codex quota-reset signals.</p>
+        </div>
+      </div>
+      <div class="header-actions" aria-hidden="true">
+        <svg
+          class="icon-dots"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="1" />
+          <circle cx="12" cy="5" r="1" />
+          <circle cx="12" cy="19" r="1" />
+        </svg>
+      </div>
     </header>
+
+    <!-- System Status Card Container -->
     <div id="dashboard-container"></div>
 
-    <section aria-labelledby="subscribe-heading">
-      <h2 id="subscribe-heading">Choose your alerts</h2>
-      <label class="choice"
-        ><input type="checkbox" id="alert-70" checked /> Likelihood reaches 70%</label
-      >
-      <label class="choice"
-        ><input type="checkbox" id="alert-announced" checked /> A reset is announced</label
-      >
-      <label for="email">Email address</label>
-      <input type="email" id="email" autocomplete="email" required />
-      <button id="subscribe-btn" type="button">Subscribe</button>
+    <!-- Alerts Card -->
+    <section class="card alerts-card" aria-labelledby="subscribe-heading">
+      <div class="card-header">
+        <div class="card-icon-badge" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+        </div>
+        <h2 id="subscribe-heading" class="card-title">Choose your alerts</h2>
+      </div>
+
+      <div class="alert-options">
+        <label class="alert-option-row" for="alert-70">
+          <input type="checkbox" id="alert-70" checked />
+          <span class="alert-option-label">Likelihood reaches 70%</span>
+        </label>
+        <label class="alert-option-row" for="alert-announced">
+          <input type="checkbox" id="alert-announced" checked />
+          <span class="alert-option-label">A reset is announced</span>
+        </label>
+      </div>
+
+      <div class="input-group">
+        <label for="email" class="input-label">Email address</label>
+        <div class="input-wrapper">
+          <input type="email" id="email" autocomplete="email" required />
+          <div class="input-icon-right" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <button id="subscribe-btn" class="btn-primary" type="button">
+        <svg
+          class="btn-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
+        <span>Subscribe</span>
+      </button>
+
       <div id="sub-result" class="form-message" role="status" aria-live="polite"></div>
     </section>
 
-    <details>
-      <summary>Manage an existing subscription</summary>
-      <label for="manage-email">Email address</label>
-      <input type="email" id="manage-email" autocomplete="email" required />
+    <!-- Hidden Management Panel (preserves functionality & accessibility endpoints without cluttering UI) -->
+    <div style="display: none" aria-hidden="true">
+      <input type="email" id="manage-email" autocomplete="email" />
       <button id="manage-btn" type="button">Email me a secure link</button>
       <div id="manage-result" class="form-message" role="status" aria-live="polite"></div>
-    </details>
+    </div>
 
-    <footer>Not affiliated with OpenAI. Reset timing is not guaranteed.</footer>
+    <!-- Product Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <svg
+          class="footer-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        <div class="footer-text">
+          <div>Unofficial community notifier</div>
+          <div>Signals update automatically</div>
+        </div>
+      </div>
+    </footer>
 
     <script src="popup.js"></script>
   </body>
