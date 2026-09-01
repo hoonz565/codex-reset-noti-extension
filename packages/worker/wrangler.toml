@@ -34,7 +34,7 @@ migrations_dir = "migrations"
 name = "codex-reset-notifier"
 [env.production.vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "chrome-extension://oecegicjjbjgdaipabophafmkgaieohl"
+ALLOWED_ORIGINS = "chrome-extension://oecegicjjbjgdaipabophafmkgaieohl,chrome-extension://ljbjnnpmhdcmbadkcedoenjpkplddfpc,chrome-extension://hajpinbdfaaiiachjeofkafhedfaplnm"
 EMAIL_FROM_ADDRESS = "Codex Reset Notifier <alerts@notidex.click>"
 MANAGEMENT_PAGE_URL = "https://codex-reset-notifier.nguyenminhhung05062005.workers.dev/manage"
 # ADMIN_API_TOKEN is bound via `wrangler secret put ADMIN_API_TOKEN --env production`
