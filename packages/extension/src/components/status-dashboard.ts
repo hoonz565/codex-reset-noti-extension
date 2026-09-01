@@ -126,8 +126,8 @@ export class StatusDashboard {
     const isNum = probability !== null && Number.isFinite(probability);
     const clampedPct = isNum ? Math.min(100, Math.max(0, Math.round(probability as number))) : null;
 
-    // Compact Circle radius = 40 -> 2 * PI * 40 = 251.33
-    const radius = 40;
+    // Compact Circle radius = 36 -> 2 * PI * 36 = 226.19
+    const radius = 36;
     const circumference = 2 * Math.PI * radius;
     const offset = clampedPct !== null ? circumference - (clampedPct / 100) * circumference : circumference;
 
@@ -139,12 +139,12 @@ export class StatusDashboard {
     return `
       <div class="likelihood" aria-label="Reset likelihood: ${clampedPct !== null ? clampedPct + ' percent' : 'unknown'}">
         <div class="likelihood-gauge">
-          <svg viewBox="0 0 100 100" class="gauge-svg" aria-hidden="true">
-            <circle class="gauge-track" cx="50" cy="50" r="${radius}" />
+          <svg viewBox="0 0 90 90" class="gauge-svg" aria-hidden="true">
+            <circle class="gauge-track" cx="45" cy="45" r="${radius}" />
             <circle
               class="gauge-progress"
-              cx="50"
-              cy="50"
+              cx="45"
+              cy="45"
               r="${radius}"
               stroke-dasharray="${circumference.toFixed(2)}"
               stroke-dashoffset="${offset.toFixed(2)}"
