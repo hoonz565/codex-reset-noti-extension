@@ -126,11 +126,10 @@ export class StatusDashboard {
     const isNum = probability !== null && Number.isFinite(probability);
     const clampedPct = isNum ? Math.min(100, Math.max(0, Math.round(probability as number))) : null;
 
-    // Circle circumference with radius = 52 -> 2 * PI * 52 = 326.7256
-    const radius = 52;
+    // Compact Circle radius = 40 -> 2 * PI * 40 = 251.33
+    const radius = 40;
     const circumference = 2 * Math.PI * radius;
-    const offset =
-      clampedPct !== null ? circumference - (clampedPct / 100) * circumference : circumference;
+    const offset = clampedPct !== null ? circumference - (clampedPct / 100) * circumference : circumference;
 
     const displayValue = clampedPct !== null ? `${clampedPct}` : '?';
     const displayUnit = clampedPct !== null ? `<span class="pct-sign">%</span>` : '';
@@ -140,12 +139,12 @@ export class StatusDashboard {
     return `
       <div class="likelihood" aria-label="Reset likelihood: ${clampedPct !== null ? clampedPct + ' percent' : 'unknown'}">
         <div class="likelihood-gauge">
-          <svg viewBox="0 0 128 128" class="gauge-svg" aria-hidden="true">
-            <circle class="gauge-track" cx="64" cy="64" r="${radius}" />
+          <svg viewBox="0 0 100 100" class="gauge-svg" aria-hidden="true">
+            <circle class="gauge-track" cx="50" cy="50" r="${radius}" />
             <circle
               class="gauge-progress"
-              cx="64"
-              cy="64"
+              cx="50"
+              cy="50"
               r="${radius}"
               stroke-dasharray="${circumference.toFixed(2)}"
               stroke-dashoffset="${offset.toFixed(2)}"
@@ -178,7 +177,8 @@ export class StatusDashboard {
       return `<p class="status-badge status-empty" role="status">System has no data yet.</p>`;
     }
 
-    const probability = data.state === 'unavailable' ? data.lastKnownProbability : data.probability;
+    const probability =
+      data.state === 'unavailable' ? data.lastKnownProbability : data.probability;
 
     const gaugeHtml = this.renderLikelihoodGauge(probability);
 
