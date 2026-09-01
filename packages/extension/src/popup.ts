@@ -21,7 +21,6 @@ function initStatusDashboard() {
 
 function formatErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    // If Zod or API returned a JSON string representation of errors
     try {
       const parsed = JSON.parse(error.message);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -54,7 +53,7 @@ async function subscribe() {
 
   const email = emailInput.value.trim();
 
-  // Client-side pre-validation for clean UX
+  // Client-side pre-validation
   if (!email) {
     resultDiv.textContent = 'Please enter your email address.';
     resultDiv.className = 'form-message error';
@@ -62,7 +61,6 @@ async function subscribe() {
     return;
   }
 
-  // Simple email regex pre-check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     resultDiv.textContent = 'Please enter a valid email address.';
