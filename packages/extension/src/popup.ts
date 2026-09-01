@@ -25,20 +25,18 @@ function formatErrorMessage(error: unknown): string {
       const parsed = JSON.parse(error.message);
       if (Array.isArray(parsed) && parsed.length > 0) {
         const first = parsed[0];
-        if (first.path?.includes('email') || first.validation === 'email') {
+        if (first.path?.includes('email') || first.validation === 'email' || first.message === 'Invalid email') {
           return 'Please enter a valid email address.';
         }
         if (first.message) {
-          return first.message === 'Invalid email'
-            ? 'Please enter a valid email address.'
-            : first.message;
+          return first.message;
         }
       }
     } catch {
-      // Normal error message
+      // Not JSON
     }
 
-    if (error.message.includes('Invalid email') || error.message.includes('email')) {
+    if (error.message === 'Invalid email') {
       return 'Please enter a valid email address.';
     }
     return error.message;

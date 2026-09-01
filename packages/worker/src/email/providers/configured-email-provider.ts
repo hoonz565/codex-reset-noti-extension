@@ -52,7 +52,7 @@ export class ConfiguredEmailProvider implements EmailProvider {
   constructor(
     private readonly apiKey: string,
     private readonly fromAddress: string,
-    private readonly fetchImplementation: FetchImplementation = fetch
+    private readonly fetchImplementation: FetchImplementation = fetch.bind(globalThis)
   ) {
     if (!apiKey) {
       throw new EmailProviderError('EMAIL_PROVIDER_API_KEY is not configured');
