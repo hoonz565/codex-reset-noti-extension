@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Codex Reset Notifier",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "View Codex reset status and manage reset alerts.",
   "action": {
     "default_popup": "popup.html"
