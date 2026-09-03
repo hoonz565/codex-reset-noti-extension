@@ -158,24 +158,4 @@ node scripts/run-verification.cjs
 - [Operational Runbooks](docs/runbooks/)
 
 ---
-
-## 📋 Project Status
-
-| Phase     | Name                     |  Status  | Branch                            |
-| :-------- | :----------------------- | :------: | :-------------------------------- |
-| Phase 0   | Product Requirements     | APPROVED | `phase-0-discovery`               |
-| Phase 0.5 | Architecture & Contracts | APPROVED | `phase-0.5-architecture`          |
-| Phase 1   | Project Foundation       | APPROVED | `phase-1-project-foundation`      |
-| Phase 1A  | Transport Spike          | APPROVED | `phase-1a-worker-extension-spike` |
-| Phase 2   | D1 Persistence           | APPROVED | `phase-2-d1-persistence`          |
-| Phase 3   | Source Snapshots         | APPROVED | `phase-3-source-snapshots`        |
-| Phase 4   | Cycle & Event Detection  | APPROVED | `phase-4-cycle-event-detection`   |
-| Phase 5   | Subscription Management  | APPROVED | `phase-5-subscription-management` |
-| Phase 6   | Notification Delivery    | APPROVED | `phase-6-email-delivery`          |
-| Phase 7   | Cron Orchestration       | APPROVED | `phase-7-orchestration-cron`      |
-| Phase 8   | Dashboard, Metrics & UI  | APPROVED | `phase-8-dashboard-metrics`       |
-| Phase 9   | Production Release       | APPROVED | `phase-9-production-release`      |
-
----
-
 _Disclaimer: This is an independent community tool and is not affiliated with, endorsed by, or sponsored by OpenAI._
